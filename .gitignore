@@ -1,1 +1,6 @@
 character_recognition/data
+
+.DS_store
+.ipynb_checkpoints
+.jupyter/desktop-workspaces
+.virtual_documents
