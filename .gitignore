@@ -1,4 +1,7 @@
-character_recognition/data
+character_recognition/src/data
+character_recognition/src/test_imgs
+digitizer/synthetic_dataset
+digitizer/wordlist
 
 .DS_store
 .ipynb_checkpoints

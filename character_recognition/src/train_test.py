@@ -29,19 +29,26 @@ emnist_mapping = {
 def decode_emnist(pred_idx):
     return emnist_mapping[pred_idx]
 
-transform = transforms.Compose([
+transform_train = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,)),
+    transforms.RandomRotation(10),  # Random rotations up to 10 degrees
+    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)), # Random translate
+])
+
+transform_test = transforms.Compose([
     transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,)),
 ])
 
 # Load the dataset
 train_data = datasets.EMNIST(
     root='./data', split='balanced', train=True,
-    download=True, transform=transform
+    download=True, transform=transform_train
 )
     
 test_data = datasets.EMNIST(
     root='./data', split='balanced', train=False,
-    download=True, transform=transform
+    download=True, transform=transform_test
 )
 
 num_workers = multiprocessing.cpu_count()
@@ -145,7 +152,7 @@ def objective(trial):
 if __name__ == "__main__":
     # Create a study to optimize the objective
     study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=50)  # Run 50 trials of optimization
+    study.optimize(objective, n_trials=80)  # Run 50 trials of optimization
 
     # Get the best trial and hyperparameters
     print("Best trial:")
@@ -174,7 +181,7 @@ if __name__ == "__main__":
     # Learning rate scheduler
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
-    for epoch in range(1, 26): #26
+    for epoch in range(1, 36): #26
         train(model, device, loaders['train'], optimizer, criterion)
         test_loss, accuracy = test(model, device, loaders['test'], criterion)
         scheduler.step()
@@ -197,7 +204,11 @@ if __name__ == "__main__":
     print(classification_report(y_true, y_pred))
 
     # Save the model 
-    torch.save(model.state_dict(), './src/weights_and_biases.torch')
-    torch.save(model, './src/model.torch')
+    torch.save(model.state_dict(), './weights_and_biases.torch')
+    torch.save(model, './model.torch')
+
+    # save model for deployment
+    scripted_model = torch.jit.script(model)
+    scripted_model.save("model.pth")
     print("Model saved.")
 

@@ -15,6 +15,8 @@ import optuna
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
 
 emnist_mapping = {
     0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9',
@@ -41,25 +43,44 @@ test_data = datasets.EMNIST(
 )
 
 # Load the model 
-model = torch.load('./src/model.torch')
+model = torch.load('./model.torch')
+model.eval()
 
 decoded_targets = [decode_emnist(target) for _, target in test_data]
 
 def predict_images(attempt=100):
-    pass
-    model.eval()
+    all_preds = []
+    all_labels = []
+
     for i in range(attempt):
         rand_idx = random.randint(0, len(test_data) - 1)
-        data, _ = test_data[rand_idx]
+        data, target = test_data[rand_idx] # Get the target as well
         data = data.unsqueeze(0).to(device)
+        target = torch.tensor([target]).unsqueeze(0).to(device) # target to tensor
         output = model(data)
         pred_idx = output.argmax(dim=1, keepdim=True).item()
         prediction = decode_emnist(pred_idx)
         actual = decoded_targets[rand_idx]
+
+        all_preds.append(pred_idx)  # Collect predictions
+        all_labels.append(target.item())  # Collect true labels
+
         print(f"Prediction: {prediction}, Actual: {actual}")
         image = data.squeeze(0).squeeze(0).cpu().numpy()
         plt.imshow(image, cmap='gray')
         plt.show()
+
+    # Calculate and plot the confusion matrix AFTER the loop
+    cm = confusion_matrix(all_labels, all_preds)
+
+    plt.figure(figsize=(10, 10))  # Adjust figure size as needed
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", 
+                xticklabels=list(emnist_mapping.values()),  # Label axes with characters
+                yticklabels=list(emnist_mapping.values()))
+    plt.xlabel("Predicted Label")
+    plt.ylabel("True Label")
+    plt.title("Confusion Matrix")
+    plt.show() 
 
 predict_images(100)
 print(device)

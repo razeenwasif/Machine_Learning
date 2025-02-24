@@ -17,8 +17,8 @@ class CNN(nn.Module):
         self.dropout_rate = dropout_rate
 
     def forward(self, x):
-        x = F.relu(F.avg_pool2d(self.bn1(self.conv1(x)), kernel_size=2))
-        x = F.relu(F.avg_pool2d(self.bn2(self.conv2_drop(self.conv2(x))), kernel_size=2))
+        x = F.relu(F.max_pool2d(self.bn1(self.conv1(x)), kernel_size=2))
+        x = F.relu(F.max_pool2d(self.bn2(self.conv2_drop(self.conv2(x))), kernel_size=2))
         # Flatten data
         x = x.view(-1, 320) #x.view(x.size(0), -1) # x = x.view(-1, 320)
         x = F.relu(self.fc1(x))

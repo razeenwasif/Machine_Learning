@@ -1,0 +1,102 @@
+/* Modernized Styling for Handwriting Practice Web App */
+
+/* Global Styles */
+html {
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    font-family: 'Poppins', sans-serif;
+    padding: 1rem;
+    color: #333;
+}
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* Title Styling */
+.title {
+    padding: 2rem 0 1rem 0;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #222;
+}
+
+/* Box Container */
+.box-container {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    align-items: stretch;
+}
+
+/* Box (Card) Styling */
+.box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+    max-width: 300px;
+    min-height: 150px;
+    height: 100%;
+}
+
+.box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.box p {
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: #666;
+    flex-grow: 1;
+}
+
+/* Buttons */
+.button {
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.button.is-info {
+    background-color: #3498db;
+    color: white;
+    border: none;
+}
+
+.button.is-info:hover {
+    background-color: #217dbb;
+}
+
+.button.is-success {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+}
+
+.button.is-success:hover {
+    background-color: #1e874b;
+}
+
+/* Canvas Styling */
+#canvas {
+    background-color: #ffffff;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+}
+
