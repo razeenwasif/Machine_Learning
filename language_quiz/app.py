@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, url_for
 from random import choice
 from bidict import bidict
 import numpy as np
@@ -23,6 +23,12 @@ mappingGr = bidict({
     'π': 15, 'ρ': 16, 'σ': 17, 'τ': 18, 'υ': 19,
     'φ': 20, 'χ': 21, 'ψ': 22, 'ω': 23
 })
+#    'Α': 0,  'Β': 1,  'Γ': 2,  'Δ': 3,  'Ε': 4,
+#    'Ζ': 5,  'Η': 6,  'Θ': 7,  'Ι': 8,  'Κ': 9,
+#    'Λ': 10, 'Μ': 11, 'Ν': 12, 'Ξ': 13, 'Ο': 14,
+#    'Π': 15, 'Ρ': 16, 'Σ': 17, 'Τ': 18, 'Υ': 19,
+#    'Φ': 20, 'Χ': 21, 'Ψ': 22, 'Ω': 23
+
 modelGr = keras.models.load_model('./src/grCharacters.keras')
 # -------------------------------------------------------------------------
 # 3. Hiragana mapping/model 
@@ -123,6 +129,38 @@ def practiceGr_post():
 
 # ==============================================================================
 
+#@app.route('/add-data', methods=['GET'])
+#def add_data_get():
+    #message = session.get('message', '')
+#
+    #labels = np.load('./data/labelsGr.npy')
+    #count = {k: 0 for k in mappingGr.keys()}
+    #for label in labels:
+        #count[label] += 1
+    #count = sorted(count.items(), key=lambda x: x[1])
+    #character = count[0][0]
+#
+    ##character = choice(list(mappingGr.keys()))
+    #return render_template("addData.html", character=character, message=message) 
+#
+#@app.route('/add-data', methods=['POST'])
+#def add_data_post():
+    #label = request.form['character']
+    #labels = np.load("./data/labelsGr.npy")
+    #labels = np.append(labels, label)
+    #np.save("./data/labelsGr.npy", labels)
+#
+    #pixels = request.form['pixels']
+    #pixels = pixels.split(',')
+    #img = np.array(pixels).astype(float).reshape(1,50,50)
+    #imgs = np.load("./data/imagesGr.npy")
+    #imgs = np.vstack([imgs, img])
+    #np.save("./data/imagesGr.npy", imgs)
+#
+    #session['message'] = f'"{label}" added to training dataset'
+    #
+    #return redirect(url_for('add_data_get'))
+#
 
 if __name__ == '__main__':
     app.run(debug=True)

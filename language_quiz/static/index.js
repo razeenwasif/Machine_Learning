@@ -116,3 +116,9 @@ function practiceAction() {
   document.getElementById("pixels").value = pixels
   document.getElementById("practice-form").submit()
 }
+
+function addDataAction() {
+  let pixels = getPixels()
+  document.getElementById("pixels").value = pixels 
+  document.getElementById("add-data-form").submit()
+}
