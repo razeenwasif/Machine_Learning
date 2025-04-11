@@ -1,0 +1,13 @@
+# .gitignore file contents
+
+# Ignore build artifacts
+build/
+dist/
+
+# Ignore specific configuration or secret files
+config.local.yaml
+.env
+
+# Ignore dataset 
+dataset/
+tutorials/
