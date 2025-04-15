@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Language Quiz App - Practice writing characters from different languages">
+    <meta name="theme-color" content="#0f172a">
+    <title>Language Quiz</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"> 
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts with extended language support -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP&family=Noto+Sans+KR&family=Noto+Sans+SC&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='index.js') }}"></script>
+
+    <style>
+      /* Ensure proper text rendering for CJK characters */
+      body {
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Language-specific font fallbacks */
+      [lang="ko"] {
+        font-family: 'Noto Sans KR', 'Inter', sans-serif;
+      }
+      
+      [lang="ja"] {
+        font-family: 'Noto Sans JP', 'Inter', sans-serif;
+      }
+      
+      [lang="zh"] {
+        font-family: 'Noto Sans SC', 'Inter', sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    
+    {% block content %}{% endblock %}
+
+  </body>
+</html>

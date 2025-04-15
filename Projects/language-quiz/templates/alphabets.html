@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="main-container">
+    <div class="nav-container">
+        <a href="/" class="button is-text">
+            <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>
+            Back to Menu
+        </a>
+        <h2 style="font-weight: 600; font-size: 1.1rem;">Language Alphabets Reference</h2>
+    </div>
+
+    <div class="tabs-container">
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'greek')">Greek</button>
+            <button class="tab-button" onclick="openTab(event, 'korean')">Korean</button>
+            <button class="tab-button" onclick="openTab(event, 'japanese')">Japanese</button>
+            <button class="tab-button" onclick="openTab(event, 'chinese')">Chinese</button>
+        </div>
+
+        <!-- Greek Tab -->
+        <div id="greek" class="tab-content active">
+            <div class="alphabet-section">
+                <h3>Greek Uppercase</h3>
+                <div class="alphabet-grid">
+                    {% for name, symbol in greek_upper.items() %}
+                    <div class="alphabet-item">
+                        <div class="alphabet-symbol">{{ symbol }}</div>
+                        <div class="alphabet-name">{{ name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="alphabet-section">
+                <h3>Greek Lowercase</h3>
+                <div class="alphabet-grid">
+                    {% for name, symbol in greek_lower.items() %}
+                    <div class="alphabet-item">
+                        <div class="alphabet-symbol">{{ symbol }}</div>
+                        <div class="alphabet-name">{{ name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Korean Tab -->
+        <div id="korean" class="tab-content">
+            <div class="alphabet-section">
+                <h3>Korean Hangul</h3>
+                <div class="alphabet-grid">
+                    {% for name, symbol in korean.items() %}
+                    <div class="alphabet-item">
+                        <div class="alphabet-symbol">{{ symbol }}</div>
+                        <div class="alphabet-name">{{ name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Japanese Tab -->
+        <div id="japanese" class="tab-content">
+            <div class="alphabet-section">
+                <h3>Japanese Hiragana</h3>
+                <div class="alphabet-grid">
+                    {% for symbol, name in japanese.items() %}
+                    <div class="alphabet-item">
+                        <div class="alphabet-symbol">{{ symbol }}</div>
+                        <div class="alphabet-name">{{ name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Chinese Tab -->
+        <div id="chinese" class="tab-content">
+            <div class="alphabet-section">
+                <h3>Chinese Characters</h3>
+                <div class="alphabet-grid">
+                    {% for name, symbol in chinese.items() %}
+                    <div class="alphabet-item">
+                        <div class="alphabet-symbol">{{ symbol }}</div>
+                        <div class="alphabet-name">{{ name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="practice-link-container">
+        <p>Ready to practice? Choose a language:</p>
+        <div class="practice-links">
+            <a href="/practiceGreek" class="button is-info">Practice Greek</a>
+            <a href="/practiceKr" class="button is-info">Practice Korean</a>
+            <a href="/practiceJp" class="button is-info">Practice Japanese</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tabs-container {
+        margin-top: 2rem;
+        width: 100%;
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+
+    .tab-button {
+        padding: 0.75rem 1.5rem;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+    }
+
+    .tab-button:hover {
+        color: var(--text-primary);
+    }
+
+    .tab-button.active {
+        color: var(--accent-primary);
+        border-bottom: 2px solid var(--accent-primary);
+    }
+
+    .tab-content {
+        display: none;
+        padding: 1rem;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .alphabet-section {
+        margin-bottom: 2rem;
+    }
+
+    .alphabet-section h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .alphabet-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 1rem;
+    }
+
+    .alphabet-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        background-color: var(--bg-secondary);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .alphabet-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .alphabet-symbol {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: var(--accent-primary);
+    }
+
+    .alphabet-name {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        text-align: center;
+    }
+
+    .practice-link-container {
+        margin-top: 3rem;
+        text-align: center;
+    }
+
+    .practice-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+</style>
+
+<script>
+    function openTab(evt, tabName) {
+        // Hide all tab content
+        var tabContents = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < tabContents.length; i++) {
+            tabContents[i].classList.remove("active");
+        }
+
+        // Remove active class from all tab buttons
+        var tabButtons = document.getElementsByClassName("tab-button");
+        for (var i = 0; i < tabButtons.length; i++) {
+            tabButtons[i].classList.remove("active");
+        }
+
+        // Show the selected tab content and mark the button as active
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+</script>
+
+{% endblock %} 
