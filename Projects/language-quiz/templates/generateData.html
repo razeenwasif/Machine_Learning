@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="main-container">
+    <div class="practice-container">
+        <div class="nav-container">
+            <a href="/" class="button is-text">
+                <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>
+                Back to Menu
+            </a>
+            <h2 style="font-weight: 600; font-size: 1.1rem;">Generate Synthetic Data</h2>
+        </div>
+
+        {% if message %}
+        <div class="feedback-container">
+            <div class="success-message">
+                <i class="fas fa-check-circle"></i>
+                <span>{{ message }}</span>
+            </div>
+            {% if num_samples and num_fonts %}
+            <p style="margin-top: 0.5rem; color: var(--text-secondary);">
+                Generated {{ num_samples }} samples using {{ num_fonts }} fonts.
+            </p>
+            {% if font_names %}
+            <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                <p>Fonts used include:</p>
+                <ul style="list-style: none; padding: 0; margin-top: 0.5rem;">
+                    {% for font in font_names %}
+                    <li>{{ font }}</li>
+                    {% endfor %}
+                    {% if num_fonts > 5 %}
+                    <li>... and {{ num_fonts - 5 }} more</li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+            {% endif %}
+            
+            {% if font_dir_info %}
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem;">
+                <p style="margin-bottom: 0.5rem;">
+                    <strong>Font Directory:</strong> {{ font_dir_info.path }}
+                </p>
+                <p>
+                    {% if font_dir_info.exists %}
+                    <span style="color: var(--accent-secondary);">
+                        <i class="fas fa-check-circle"></i> Directory exists with {{ font_dir_info.num_fonts }} font files
+                    </span>
+                    {% else %}
+                    <span style="color: #f43f5e;">
+                        <i class="fas fa-exclamation-circle"></i> Directory does not exist yet
+                    </span>
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+            
+            {% if model_info %}
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem;">
+                <p style="margin-bottom: 0.5rem;">
+                    <strong>Model Training:</strong>
+                </p>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 0.25rem;">
+                        <i class="fas fa-chart-line" style="margin-right: 0.5rem;"></i>
+                        Training accuracy: {{ "%.2f"|format(model_info.accuracy * 100) }}%
+                    </li>
+                    {% if model_info.val_accuracy %}
+                    <li style="margin-bottom: 0.25rem;">
+                        <i class="fas fa-chart-bar" style="margin-right: 0.5rem;"></i>
+                        Validation accuracy: {{ "%.2f"|format(model_info.val_accuracy * 100) }}%
+                    </li>
+                    {% endif %}
+                    <li style="margin-bottom: 0.25rem;">
+                        <i class="fas fa-history" style="margin-right: 0.5rem;"></i>
+                        Epochs: {{ model_info.epochs }}
+                    </li>
+                    <li>
+                        <i class="fas fa-database" style="margin-right: 0.5rem;"></i>
+                        Training samples: {{ model_info.num_samples }}
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div style="width: 100%; text-align: center; margin-bottom: 2rem;">
+            <h3 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                Create Training Data for New Languages
+            </h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                This tool generates synthetic training data for new languages using fonts in your project's fonts directory.
+                The generated data can be used to train models for character recognition.
+            </p>
+            <div style="background-color: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; text-align: left; font-size: 0.9rem;">
+                <p style="margin-bottom: 0.5rem; color: var(--text-primary);">
+                    <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                    <strong>Font Directory:</strong>
+                </p>
+                <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    Add font files (.ttf or .otf) to the <code style="background-color: rgba(0,0,0,0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">./fonts/</code> directory or its language-specific subdirectories:
+                </p>
+                <ul style="list-style: none; padding-left: 1rem; color: var(--text-secondary);">
+                    <li style="margin-bottom: 0.25rem;">• <code style="background-color: rgba(0,0,0,0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">./fonts/korean/</code> - for Korean fonts</li>
+                    <li style="margin-bottom: 0.25rem;">• <code style="background-color: rgba(0,0,0,0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">./fonts/chinese/</code> - for Chinese fonts</li>
+                    <li style="margin-bottom: 0.25rem;">• <code style="background-color: rgba(0,0,0,0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">./fonts/japanese/</code> - for Japanese fonts</li>
+                    <li>• <code style="background-color: rgba(0,0,0,0.2); padding: 0.2rem 0.4rem; border-radius: 4px;">./fonts/greek/</code> - for Greek fonts</li>
+                </ul>
+            </div>
+        </div>
+
+        <form action="/generate-data" method="POST" style="width: 100%;">
+            <div class="form-group">
+                <label for="language-selection">Select Language</label>
+                <div class="language-selector">
+                    <div style="display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap;">
+                        {% for lang_code, lang_info in languages.items() %}
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem;">
+                            <input type="radio" name="language" value="{{ lang_code }}" 
+                                   {% if selected_language == lang_code %}checked{% endif %}
+                                   style="margin-right: 0.5rem;">
+                            <span>{{ lang_info.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="variations">Variations per Font</label>
+                <input type="number" id="variations" name="variations" min="1" max="50" value="10" 
+                       style="max-width: 100px; margin: 0 auto; text-align: center;">
+                <p class="help-text">
+                    More variations = more training data but longer generation time
+                </p>
+            </div>
+
+            <div class="form-group">
+                <div style="display: inline-flex; align-items: center; margin-bottom: 0.5rem;">
+                    <input type="checkbox" id="verbose" name="verbose" value="true" style="margin-right: 0.5rem;">
+                    <label for="verbose" style="margin-bottom: 0; cursor: pointer;">
+                        Verbose logging
+                    </label>
+                </div>
+                <p class="help-text">
+                    Enable to see detailed logs about font detection
+                </p>
+            </div>
+
+            <div class="button-group" style="justify-content: center;">
+                <button type="submit" class="button is-success">
+                    <i class="fas fa-magic" style="margin-right: 0.5rem;"></i>
+                    Generate Data
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %} 

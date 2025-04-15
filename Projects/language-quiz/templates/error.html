@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="main-container">
+  <div class="practice-container">
+    <div class="nav-container">
+      <a href="/" class="button is-text">
+        <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>
+        Back to Menu
+      </a>
+      <h2 style="font-weight: 600; font-size: 1.1rem;">Error</h2>
+    </div>
+
+    <div style="text-align: center; padding: 2rem 0;">
+      <i class="fas fa-exclamation-triangle fa-3x" style="color: #f43f5e; margin-bottom: 1.5rem;"></i>
+      <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">Oops! Something went wrong</h1>
+      
+      {% if error %}
+      <div class="feedback-container">
+        <div class="error-message">
+          <span>{{ error }}</span>
+        </div>
+      </div>
+      {% else %}
+      <p style="color: var(--text-secondary);">An unexpected error occurred. Please try again.</p>
+      {% endif %}
+      
+      <a href="/" class="button is-info" style="margin-top: 2rem;">
+        <i class="fas fa-home" style="margin-right: 0.5rem;"></i>
+        Return to Home
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

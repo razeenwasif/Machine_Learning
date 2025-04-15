@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="main-container">
+    <div class="practice-container">
+        <div class="nav-container">
+            <a href="/" class="button is-text">
+                <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>
+                Back to Menu
+            </a>
+            <h2 style="font-weight: 600; font-size: 1.1rem;">Contribute Data - {{ language_name }}</h2>
+        </div>
+
+        <!-- Language Selection -->
+        <div class="language-selector" style="margin-bottom: 1.5rem; width: 100%;">
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
+                <a href="{{ url_for('add_data_get', language='en') }}" class="button {% if language == 'en' %}is-info{% else %}is-text{% endif %}">
+                    <i class="fas fa-font" style="margin-right: 0.5rem;"></i>
+                    English
+                </a>
+                <a href="{{ url_for('add_data_get', language='jp') }}" class="button {% if language == 'jp' %}is-info{% else %}is-text{% endif %}">
+                    <i class="fas fa-language" style="margin-right: 0.5rem;"></i>
+                    Hiragana
+                </a>
+                <a href="{{ url_for('add_data_get', language='gr') }}" class="button {% if language == 'gr' %}is-info{% else %}is-text{% endif %}">
+                    <i class="fas fa-omega" style="margin-right: 0.5rem;"></i>
+                    Greek
+                </a>
+            </div>
+        </div>
+
+        {% if message %}
+        <div class="feedback-container">
+            <div class="success-message">
+                <i class="fas fa-check-circle"></i>
+                <span>{{ message }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="width: 100%; text-align: center;">
+            {% if symbol %}
+            <div class="symbol-display" lang="{% if language == 'jp' %}ja{% elif language == 'kr' %}ko{% elif language == 'gr' %}el{% elif language == 'zh' %}zh{% else %}en{% endif %}">{{ symbol }}</div>
+            {% endif %}
+            <div class="character-display">{{ character }}</div>
+            <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+                Draw this character to help improve our {{ language_name }} recognition model
+            </p>
+        </div>
+
+        <canvas id="canvas" width="250" height="250"></canvas>
+
+        <form id="add-data-form" action="add-data" method="POST">
+            <input id="pixels" name="pixels" type="hidden" />
+            <input id="character" name="character" type="hidden" value="{{ character }}" />
+            <input id="language" name="language" type="hidden" value="{{ language }}" />
+            
+            <div class="button-group">
+                <button type="button" class="button is-success" onclick="addDataAction()">
+                    <i class="fas fa-save" style="margin-right: 0.5rem;"></i>
+                    Submit Data
+                </button>
+                <button type="button" class="button is-text" onclick="resetCanvas()">
+                    <i class="fas fa-eraser" style="margin-right: 0.5rem;"></i>
+                    Clear
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        startCanvas();
+    });
+</script>
+
+{% endblock %}
+

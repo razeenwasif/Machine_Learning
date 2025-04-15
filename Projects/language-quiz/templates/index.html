@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <div class="main-container">
+    <h1 class="title">Language Quiz</h1>
+    
+    <div class="box-container">
+
+      <!-- Remove English box -->
+      <!-- <div class="box">
+        <i class="fas fa-font fa-2x" style="color: var(--accent-primary); margin-bottom: 1rem;"></i>
+        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">English</h2>
+        <p>Practice writing English alphabet characters (uppercase and lowercase) and improve your handwriting skills</p>
+        <a class="button is-info" href="/practiceEnglish">
+          <span>Start Practice</span>
+          <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
+        </a>
+      </div> -->
+
+      <!-- Add Alphabets Reference box -->
+      <div class="box">
+        <i class="fas fa-book-open fa-2x" style="color: #3b82f6; margin-bottom: 1rem;"></i>
+        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Alphabets Reference</h2>
+        <p>View all characters for each language to help you learn before taking the quizzes</p>
+        <a class="button is-info" href="/alphabets">
+          <span>View Alphabets</span>
+          <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
+        </a>
+      </div>
+
+      <div class="box">
+        <i class="fas fa-language fa-2x" style="color: var(--accent-tertiary); margin-bottom: 1rem;"></i>
+        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Hiragana</h2>
+        <p>Practice writing Japanese Hiragana characters and enhance your Japanese writing skills</p>
+        <a class="button is-info" href="/practiceJp">
+          <span>Start Practice</span>
+          <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
+        </a>
+      </div>
+
+      <div class="box">
+        <i class="fas fa-omega fa-2x" style="color: var(--accent-secondary); margin-bottom: 1rem;"></i>
+        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Greek</h2>
+        <p>Practice writing Greek alphabet characters (uppercase and lowercase) and learn this ancient writing system</p>
+        <a class="button is-info" href="/practiceGreek">
+          <span>Start Practice</span>
+          <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
+        </a>
+      </div>
+
+      <div class="box">
+        <i class="fas fa-won-sign fa-2x" style="color: #ec4899; margin-bottom: 1rem;"></i>
+        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Korean</h2>
+        <p>Practice writing Korean Hangul characters and explore this unique writing system</p>
+        <a class="button is-info" href="/practiceKr">
+          <span>Start Practice</span>
+          <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
+        </a>
+      </div>
+
+      <div class="box">
+        <i class="fas fa-database fa-2x" style="color: #f59e0b; margin-bottom: 1rem;"></i>
+        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Add Data</h2>
+        <p>Contribute to our training datasets by adding your own character samples for any language</p>
+        <div style="display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: center;">
+          <!-- Remove English button -->
+          <!-- <a class="button is-info" href="/add-data?language=en" style="padding: 0.5rem; font-size: 0.9rem;">
+            <i class="fas fa-font"></i>
+          </a> -->
+          <a class="button is-info" href="/add-data?language=jp" style="padding: 0.5rem; font-size: 0.9rem;">
+            <i class="fas fa-language"></i>
+          </a>
+          <a class="button is-info" href="/add-data?language=gr" style="padding: 0.5rem; font-size: 0.9rem;">
+            <i class="fas fa-omega"></i>
+          </a>
+          <a class="button is-info" href="/add-data?language=kr" style="padding: 0.5rem; font-size: 0.9rem;">
+            <i class="fas fa-won-sign"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="box">
+        <i class="fas fa-magic fa-2x" style="color: #8b5cf6; margin-bottom: 1rem;"></i>
+        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Generate Data</h2>
+        <p>Create synthetic training data for new languages using fonts installed on your system</p>
+        <a class="button is-info" href="/generate-data">
+          <span>Generate Data</span>
+          <i class="fas fa-wand-magic-sparkles" style="margin-left: 0.5rem;"></i>
+        </a>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 3rem; text-align: center; color: var(--text-tertiary); font-size: 0.9rem;">
+      <p>Powered by TensorFlow & Flask</p>
+      <p style="margin-top: 0.5rem;">© 2023 Language Quiz App</p>
+    </div>
+  </div>
+
+{% endblock %}
