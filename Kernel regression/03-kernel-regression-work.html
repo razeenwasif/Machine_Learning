@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Kernel Methods</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="03-kernel-regression-work_files/libs/clipboard/clipboard.min.js"></script>
+<script src="03-kernel-regression-work_files/libs/quarto-html/quarto.js"></script>
+<script src="03-kernel-regression-work_files/libs/quarto-html/popper.min.js"></script>
+<script src="03-kernel-regression-work_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="03-kernel-regression-work_files/libs/quarto-html/anchor.min.js"></script>
+<link href="03-kernel-regression-work_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="03-kernel-regression-work_files/libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="03-kernel-regression-work_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="03-kernel-regression-work_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="03-kernel-regression-work_files/libs/bootstrap/bootstrap-c0367b04c37547644fece4185067e4a7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Kernel Methods</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="comp46708600---statistical-machine-learning---tutorial" class="level6">
+<h6 class="anchored" data-anchor-id="comp46708600---statistical-machine-learning---tutorial">COMP4670/8600 - Statistical Machine Learning - Tutorial</h6>
+<p>In this lab, we will predict the median value of houses in Boston using a quadratic basis and an equivalent kernel method.</p>
+</section>
+<section id="assumed-knowledge" class="level3">
+<h3 class="anchored" data-anchor-id="assumed-knowledge">Assumed knowledge</h3>
+<ul>
+<li>Linear regression (Week 2)</li>
+<li>Kernel methods (Week 4; Bishop 6.1, 6.2)</li>
+</ul>
+</section>
+<section id="after-this-lab-you-should-be-comfortable-with" class="level3">
+<h3 class="anchored" data-anchor-id="after-this-lab-you-should-be-comfortable-with">After this lab, you should be comfortable with:</h3>
+<ul>
+<li>Applying machine learning techniques with a non-linear basis</li>
+<li>Using kernel methods instead of a new basis</li>
+<li>Evaluating when using a kernel method would or would not be sensible</li>
+</ul>
+<p><span class="math inline">\(\newcommand{\RR}{\mathbb{R}}\)</span> <span class="math inline">\(\newcommand{\dotprod}[2]{\langle #1, #2 \rangle}\)</span></p>
+<p>Setting up the environment</p>
+<div id="cell-5" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="loading-the-dataset" class="level2">
+<h2 class="anchored" data-anchor-id="loading-the-dataset">Loading the dataset</h2>
+<p>In this lab, we will use the same <a href="https://machlearn.gitlab.io/sml2019/tutorials/02-dataset.csv">dataset</a> as in week 2, which describes the price of housing in Boston (see <a href="https://www.cs.toronto.edu/~delve/data/boston/bostonDetail.html">description</a>). We aim to predict the value of a home from other factors. In this dataset, each row represents the data of one house. The first column is the value of the house, which is the target to predict. The remaining columns are features, which has been normalised to be in the range <span class="math inline">\([-1, 1]\)</span>. The corresponding labels of columns are</p>
+<p><code>'medv', 'crim', 'zn', 'indus', 'chas', 'nox', 'rm', 'age', 'dis', 'rad', 'tax', 'ptratio', 'b', 'lstat'</code></p>
+<p>Download the dataset. Read in the data using <code>np.loadtxt</code> with the optional argument <code>delimiter=','</code>, as our data is comma separated rather than space separated. Remove the column containing the binary variable <code>'chas'</code>.</p>
+<p>Check that the data is as expected using <code>print()</code>. It should have 506 rows (examples) and 13 columns (1 label and 12 features). Check that this is the case.</p>
+<p>Hint: use assert.</p>
+<div id="cell-7" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>names <span class="op">=</span> [<span class="st">'medv'</span>, <span class="st">'crim'</span>, <span class="st">'zn'</span>, <span class="st">'indus'</span>, <span class="st">'chas'</span>, <span class="st">'nox'</span>, <span class="st">'rm'</span>, <span class="st">'age'</span>, <span class="st">'dis'</span>, <span class="st">'rad'</span>, <span class="st">'tax'</span>, <span class="st">'ptratio'</span>, <span class="st">'b'</span>, <span class="st">'lstat'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-8" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>loaded_data <span class="op">=</span> np.loadtxt(<span class="st">'03-dataset.csv'</span>, delimiter<span class="op">=</span><span class="st">','</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># remove chas</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>column_idxes <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="bu">len</span>(names)))</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>chas_idx <span class="op">=</span> names.index(<span class="st">'chas'</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>wanted_columns <span class="op">=</span> <span class="bu">list</span>(column_idxes)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>wanted_columns.remove(chas_idx)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> loaded_data[:,wanted_columns]</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>data_names <span class="op">=</span> <span class="bu">list</span>(names)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>data_names.remove(<span class="st">'chas'</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(data_names)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.array_str(data[:<span class="dv">5</span>], precision<span class="op">=</span><span class="dv">3</span>))</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> data.shape <span class="op">==</span> (<span class="dv">506</span>,<span class="dv">13</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>['medv', 'crim', 'zn', 'indus', 'nox', 'rm', 'age', 'dis', 'rad', 'tax', 'ptratio', 'b', 'lstat']
+[[24.    -1.    -0.64  -0.864 -0.37   0.155  0.283 -0.462 -1.    -0.584
+  -0.426  1.    -0.821]
+ [21.    -1.    -1.    -0.515 -0.654  0.096  0.565 -0.302 -0.913 -0.79
+   0.106  1.    -0.591]
+ [34.    -1.    -1.    -0.515 -0.654  0.389  0.199 -0.302 -0.913 -0.79
+   0.106  0.979 -0.873]
+ [33.    -0.999 -1.    -0.874 -0.7    0.317 -0.116 -0.103 -0.826 -0.866
+   0.298  0.989 -0.933]
+ [36.    -0.999 -1.    -0.874 -0.7    0.374  0.057 -0.103 -0.826 -0.866
+   0.298  1.    -0.801]]</code></pre>
+</div>
+</div>
+</section>
+<section id="before-coding-explain-kernel-methods-dual-representations" class="level2">
+<h2 class="anchored" data-anchor-id="before-coding-explain-kernel-methods-dual-representations">Before coding: Explain kernel methods, dual representations</h2>
+<p>Please spend 5 minutes to explain to your neighbours what are kernel methods and dual representations.</p>
+<p>Then find a piece of paper, derive how to from the linear regression model with regularised sum-of-squares error <span class="math display">\[J(\mathbf{w}) = \frac{1}{2} \sum_{n=1}^N(\mathbf{w}^T \phi(\mathbf{x_n}) - t_n)^2 + \frac{\lambda}{2} \mathbf{w}^T\mathbf{w},\]</span> get to the dual representations <span class="math display">\[J(\mathbf{a}) = \frac{1}{2} \mathbf{a}^T \mathbf{KKa} - \mathbf{a}^T \mathbf{Kt} + \frac{1}{2}\mathbf{t}^T \mathbf{t} + \frac{\lambda}{2} \mathbf{a}^T\mathbf{Ka},\]</span> where <span class="math inline">\(\mathbf{K=\Phi \Phi}^T\)</span> with elements <span class="math inline">\(K_{ij} = \phi(\mathbf{x_i})^T\phi(\mathbf{x_j})\)</span></p>
+</section>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>This notebook contains two parts. Part one is to implement linear regression with a basis function, for example, <a href="https://en.wikipedia.org/wiki/Polynomial_kernel">a polynomial basis function of degree 2</a> as mentioned in week 2, we call it quadratic basis function below. The basis function can be understood as a feature mapping from raw input space into the new feature space. Part two is kernel regression, i.e.&nbsp;linear regression with kernel function <span class="math inline">\(k(\mathbf{x,y}) = (\dotprod{\mathbf{x}}{\mathbf{y}} + 1)^2\)</span>. We’ll see the kernel function implementation is equavilant of the quadratic basis function implementation.</p>
+</section>
+<section id="refresh-linear-regression" class="level2">
+<h2 class="anchored" data-anchor-id="refresh-linear-regression">Refresh: Linear regression</h2>
+<p>First remind yourself of what linear regression is by our implemention of linear regression with regularisation on the Boston dataset. Use 80% of the available data for training the model using maximum likelihood with regularisation (assuming Gaussian noise). The rest of the data is allocated to the test set.</p>
+<p>Report the root mean squared error (RMSE) for the training set and the test set. We’ll compare the results with the linear regression with basis function, and the linear regression with kernel function later on.</p>
+<p><strong>TODO</strong>: Implement the analytic solution of <span class="math inline">\(\frac{\partial J(\mathbf{w})}{\partial\mathbf{w}}=0\)</span> in the function <code>w_ml_regularised(Phi, t, l)</code>, where <code>l</code> stands for <span class="math inline">\(\lambda\)</span>. Note that <span class="math display">\[\Phi=
+\begin{pmatrix}
+    \phi(\mathbf{x_1})^T \\
+    \phi(\mathbf{x_2})^T \\
+    \vdots \\
+    \phi(\mathbf{x_n})^T \\
+\end{pmatrix},\]</span> where <span class="math inline">\(\phi(\mathbf{x_i})\)</span> denotes the feature vector for the <span class="math inline">\(i\)</span>-th datapoint, and <span class="math inline">\(n\)</span> denotes the total number of datapoints.</p>
+<div id="cell-11" class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> w_ml_regularised(Phi, t, l):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Produce the analytic solution of w given input features and labels."""</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    w <span class="op">=</span> <span class="va">None</span> <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> w</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> split_data(data, train_size):</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Randomly split data into two groups. The first group is a fifth of the data."""</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    np.random.seed(<span class="dv">1</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    N <span class="op">=</span> <span class="bu">len</span>(data)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> np.arange(N)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    np.random.shuffle(idx)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    train_idx <span class="op">=</span> idx[:<span class="bu">int</span>(train_size <span class="op">*</span> N)]</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    test_idx <span class="op">=</span> idx[<span class="bu">int</span>(train_size <span class="op">*</span> N):]</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Assume label is in the first column</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    X_train <span class="op">=</span> data[train_idx, <span class="dv">1</span>:]</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    t_train <span class="op">=</span> data[train_idx, <span class="dv">0</span>]</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    X_test <span class="op">=</span> data[test_idx, <span class="dv">1</span>:]</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    t_test <span class="op">=</span> data[test_idx, <span class="dv">0</span>]</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X_train, t_train, X_test, t_test</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rmse(X_train, t_train, X_test, t_test, w):</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return the RMSE for training and test sets"""</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    N_train <span class="op">=</span> <span class="bu">len</span>(X_train)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    N_test <span class="op">=</span> <span class="bu">len</span>(X_test)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Training set error</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    t_train_pred <span class="op">=</span> np.dot(X_train, w)</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    rmse_train <span class="op">=</span> np.linalg.norm(t_train_pred <span class="op">-</span> t_train) <span class="op">/</span> np.sqrt(N_train)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Test set error</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    t_test_pred <span class="op">=</span> np.dot(X_test, w)</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    rmse_test <span class="op">=</span> np.linalg.norm(t_test_pred <span class="op">-</span> t_test) <span class="op">/</span> np.sqrt(N_test)</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rmse_train, rmse_test</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lr(X, l, split_rate):</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return RMSE for the training set and the test set</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="co">    ------------------------------------------------------</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="co">    X: numpy matrix, whole dataset </span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="co">    l: float, regularisation parameter</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a><span class="co">    split_rate: int, the percent of training dataset</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a><span class="co">    ------------------------------------------------------</span></span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a><span class="co">    train_rmse: float, RMSE for training set</span></span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a><span class="co">    test_rmse: float, RMSE for testing set</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    X0 <span class="op">=</span> np.ones((data.shape[<span class="dv">0</span>], <span class="dv">1</span>))</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> np.hstack((X, X0))</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    X_train, t_train, X_test, t_test <span class="op">=</span> split_data(X, split_rate)</span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    <span class="co"># alternatively: use train_test_split</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    <span class="co">#X_train, X_test, t_train, t_test = train_test_split(X[:,1:], X[:, 0], test_size = 1 - split_rate, random_state = 42)</span></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    w_reg <span class="op">=</span> w_ml_regularised(X_train, t_train,l)</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>    train_rmse, test_rmse <span class="op">=</span> rmse(X_train, t_train, X_test, t_test, w_reg)</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> train_rmse, test_rmse</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>train_rmse, test_rmse <span class="op">=</span> lr(data, <span class="fl">1.1</span>, <span class="fl">0.8</span>)</span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Regression: RMSE with regularisation: Train </span><span class="sc">{:.6f}</span><span class="st">, Test </span><span class="sc">{:.6f}</span><span class="st">"</span>.<span class="bu">format</span>(train_rmse, test_rmse))</span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Expected value: Train 4.74, Test 4.89"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="part-1-linear-regression-with-quadratic-basis-function" class="level2">
+<h2 class="anchored" data-anchor-id="part-1-linear-regression-with-quadratic-basis-function">Part 1: Linear regression with quadratic basis function</h2>
+<p>Let <span class="math inline">\(X \in \RR^{n \times d}\)</span> be the data matrix containing n datapoints <span class="math inline">\(\mathbf{x_i} \in \RR^{d}\)</span>. We can choose to train and test using the raw data <span class="math inline">\(X\)</span> as the input to our model as the above method. Alternatively, we could use <span class="math display">\[\Phi= [\mathbf{\phi(x_1)}, \mathbf{\phi(x_2)}, ..., \mathbf{\phi(x_n)}]^T \in \RR^{n \times m},\]</span> where <span class="math inline">\(\mathbf{\phi(x_i)}\)</span> is some transformation of <span class="math inline">\(\mathbf{x_i}\)</span>, m is the dimension of <span class="math inline">\(\mathbf{\phi(x_i)}\)</span>.</p>
+<p>For this lab, write <span class="math inline">\(\mathbf{x_i} = (x_{i,1},\dots,x_{i,d})\)</span>. Let <span class="math display">\[
+\phi(\mathbf{x_i}) = (x_{i,1}^2, x_{i,2}^2, \ldots, x_{i,d}^2, \sqrt{2}x_{i,1} x_{i,2}, \ldots, \sqrt{2}x_{i,d-1}x_{i,d}, \sqrt{2}x_{i,1}, \ldots, \sqrt{2}x_{i,d}, 1).
+\]</span> Note that <span class="math inline">\(\phi(\mathbf{x_i})\)</span> is all quadratic functions of elements of <span class="math inline">\(\mathbf{x_i}\)</span> and 1 (The <span class="math inline">\(\sqrt{2}\)</span> coefficients are for normalisation for later in the lab). We say that we are using a <em>quadratic basis function</em>.</p>
+<p>Train and test the data with <code>quadratic_lr</code>, report the RMSE for the training set and the test set.</p>
+<p><strong>TODO</strong>:<br>
+1. write a function called <code>phi_quadratic</code> with a single datapoint <span class="math inline">\(\mathbf{x_i}\)</span> as input and the quadratic basis function <span class="math inline">\(\phi(\mathbf{x_i})\)</span> as output.<br>
+2. write a function called <code>feature_map</code> with raw data matrix <span class="math inline">\(X\)</span> as input and <span class="math inline">\(\Phi\)</span> as output by using <code>phi_quadratic</code> for each datapoint. 3. in function <code>quadratic_lr</code>, make use of previous functions and give the analytic solution for <span class="math inline">\(\mathbf{w}\)</span>.</p>
+<div id="cell-13" class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> phi_quadratic(x):</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute phi(x) for a single training example using quadratic basis function."""</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">NotImplementedError</span> <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> feat <span class="co"># (m,)</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> feature_map(X):</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return the matrix of the feature map."""</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">NotImplementedError</span> <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Phi <span class="co"># (n,m)</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> quadratic_lr(X, l, split_rate):</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return RMSE for the training set and the test set</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="co">    ------------------------------------------------------</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="co">    X: numpy matrix, whole dataset </span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="co">    l: float, regularisation parameter</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="co">    split_rate: int, the percent of training dataset</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co">    ------------------------------------------------------</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="co">    train_rmse: float, RMSE for training set</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="co">    test_rmse: float, RMSE for testing set</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    X_train, t_train, X_test, t_test <span class="op">=</span> split_data(X, split_rate)</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>    w_reg <span class="op">=</span> <span class="va">None</span> <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    train_rmse, test_rmse <span class="op">=</span> rmse(feature_map(X_train), t_train, feature_map(X_test), t_test, w_reg)</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> train_rmse, test_rmse</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>train_rmse, test_rmse <span class="op">=</span> quadratic_lr(data, <span class="fl">1.1</span>, <span class="fl">0.8</span>)</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Quadratic basis: RMSE with regularisation: Train </span><span class="sc">{:.6f}</span><span class="st">, Test </span><span class="sc">{:.6f}</span><span class="st">"</span>.<span class="bu">format</span>(train_rmse, test_rmse))</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Expected value: Train 2.79, Test 3.34"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="part-2-linear-regression-with-a-kernel" class="level2">
+<h2 class="anchored" data-anchor-id="part-2-linear-regression-with-a-kernel">Part 2: Linear regression with a kernel</h2>
+<section id="computing-a-basis-transformation-as-an-inner-product" class="level3">
+<h3 class="anchored" data-anchor-id="computing-a-basis-transformation-as-an-inner-product">Computing a basis transformation as an inner product</h3>
+<p>Define <span class="math inline">\(k(\mathbf{x,y}) = (\dotprod{\mathbf{x}}{\mathbf{y}} + 1)^2\)</span>, where <span class="math inline">\(\mathbf{x,y} \in \mathbb{R}^2\)</span>. One way to verify <span class="math inline">\(k(\mathbf{x,y})\)</span> is a kernel function is to write this as an inner product of a verctor valued function evaluated at <span class="math inline">\(\mathbf{x}\)</span> and <span class="math inline">\(\mathbf{y}\)</span>. That is, show we have <span class="math inline">\(k(\mathbf{x}, \mathbf{y}) = \dotprod{\phi(\mathbf{x})}{\phi(\mathbf{y})}\)</span> and specify what is <span class="math inline">\(\phi(\mathbf{x}), \phi(\mathbf{y})\)</span>.</p>
+</section>
+<section id="answer" class="level3">
+<h3 class="anchored" data-anchor-id="answer"><span style="color:blue">Answer</span></h3>
+<p><i>— replace this with your solution, add and remove code and markdown cells as appropriate —</i></p>
+<p>Then convince yourself that, for <span class="math inline">\(X \in \RR^{n \times d}, Y \in \RR^{m \times d}\)</span>, then <span class="math inline">\(K = (X Y^T  + 1)^2 \in \RR^{n \times m}\)</span> (addition and square term are element-wise) contains elements as kernel function between each pair of datapoints of X and Y, <span class="math display">\[K_{ij} = \phi(\mathbf{x_i})^T \phi(\mathbf{y_j}) = k(\mathbf{x_i}, \mathbf{y_j}).\]</span></p>
+</section>
+<section id="kernelised-regression" class="level3">
+<h3 class="anchored" data-anchor-id="kernelised-regression">Kernelised Regression</h3>
+<p><strong>TODO</strong>: Write the function <code>kernel_quadratic</code> which takes <span class="math inline">\(X\)</span>, <span class="math inline">\(Y\)</span> as input and <span class="math inline">\(K\)</span> as output.</p>
+<div id="cell-17" class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> kernel_quadratic(X, Y):</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">NotImplementedError</span> <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> K</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>TODO</strong>: Complete the function <code>kernelised_lr</code> with raw data matrix <span class="math inline">\(X\)</span> as input and root mean squared error (RMSE) for the training set and the test set as output. Inside of the function, make use of <code>kernel_quadratic</code> to apply dual representation, and calculate the predicted labels for training data and testing data repectively.</p>
+<div id="cell-19" class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> kernelised_lr(X, l, split_rate):</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return RMSE for the training set and the test set</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">    ------------------------------------------------------</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">    X: numpy matrix, whole dataset </span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">    l: float, regularisation parameter</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">    split_rate: int, the percent of training dataset</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">    ------------------------------------------------------</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">    rmse_train: float, RMSE for training set</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">    rmse_test: float, RMSE for testing set</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    X_train, t_train, X_test, t_test <span class="op">=</span> split_data(X, split_rate)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    N_train <span class="op">=</span> X_train.shape[<span class="dv">0</span>]</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    N_test <span class="op">=</span> X_test.shape[<span class="dv">0</span>]</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">NotImplementedError</span> <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Training set error</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    t_train_pred <span class="op">=</span> <span class="va">None</span> <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    rmse_train <span class="op">=</span> np.linalg.norm(t_train_pred <span class="op">-</span> t_train) <span class="op">/</span> np.sqrt(N_train)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Test set error</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    t_test_pred <span class="op">=</span> <span class="va">None</span> <span class="co"># </span><span class="al">TODO</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    rmse_test <span class="op">=</span> np.linalg.norm(t_test_pred <span class="op">-</span> t_test) <span class="op">/</span> np.sqrt(N_test)</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rmse_train, rmse_test</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>train_rmse, test_rmse <span class="op">=</span> kernelised_lr(data, <span class="fl">1.1</span>, <span class="fl">0.8</span>)</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Kernelised Regression: RMSE with regularisation: Train </span><span class="sc">{:.6f}</span><span class="st">, Test </span><span class="sc">{:.6f}</span><span class="st">"</span>.<span class="bu">format</span>(train_rmse, test_rmse))</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Expected value: Train 2.79, Test 3.33"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="time-complexity" class="level2">
+<h2 class="anchored" data-anchor-id="time-complexity">Time complexity</h2>
+<p>Compare the above two methods (quadratic basis function, kernel method) in terms of time complexity.</p>
+<p>In terms of time complexity, is using a kernel method suitable in this case? What are potential advantages of using a kernel method? Disadvantages?</p>
+<section id="answer-1" class="level3">
+<h3 class="anchored" data-anchor-id="answer-1"><span style="color:blue">Answer</span></h3>
+<p><i>— replace this with your solution, add and remove code and markdown cells as appropriate —</i></p>
+</section>
+</section>
+<section id="textbook-questions-optional" class="level2">
+<h2 class="anchored" data-anchor-id="textbook-questions-optional">Textbook Questions (Optional)</h2>
+<p>These questions are hand picked to both be of reasonable difficulty and demonstrate what you are expected to be able to solve. The questions are labelled in Bishop as either <span class="math inline">\(\star\)</span>, <span class="math inline">\(\star\star\)</span>, or <span class="math inline">\(\star\star\star\)</span> to rate its difficulty.</p>
+<ul>
+<li><strong>Question 6.1</strong>: Understand dual formulation (Difficulty <span class="math inline">\(\star\star\)</span>, simple algebraic derivation)</li>
+<li><strong>Question 6.2</strong>: Dual formulation for perceptron learning algorithm (Difficulty <span class="math inline">\(\star\star\)</span>, simple algebraic derivation)</li>
+<li><strong>Question 6.11</strong>: You may want to use Taylor expansion to represent term <span class="math inline">\(\exp(\mathbf{x}^T\mathbf{x}'/2\sigma^2)\)</span> (Difficulty <span class="math inline">\(\star\)</span>)</li>
+<li><strong>Question 6.12</strong>: To prove <span class="math inline">\(k\left(A_{1}, A_{2}\right)=2^{\left|A_{1} \cap A_{2}\right|}=\phi\left(A_{1}\right)^{T} \phi\left(A_{2}\right)\)</span>. (Difficulty <span class="math inline">\(\star\star\)</span>)</li>
+<li><strong>Question 6.13</strong>: Use chain rule to represent <span class="math inline">\(g(\varphi(\theta), x)\)</span> (Difficulty <span class="math inline">\(\star\)</span>)</li>
+<li><strong>Question 7.6</strong>: (Difficulty <span class="math inline">\(\star\)</span>, simple algebraic derivation)</li>
+<li><strong>Question 7.7</strong>: (Difficulty <span class="math inline">\(\star\)</span>, simple algebraic derivation)</li>
+</ul>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
