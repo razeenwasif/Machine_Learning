@@ -1,0 +1,170 @@
+Stable Diffusion                                                                      |
+Stable diffusion is a text-to-image deep learning model, based on diffusion models.   |
+______________________________________________________________________________________|
+                                                                                      |
+What is a Generative model?                                                           |
+A generative model learns a probability distribution of the data set such that we can |
+then sample from the distribution to create new instances of data.                    |
+For example, if we have many pictures of cats and we train a generative model on it,  |
+we then sample from this distribution to create new images of cats.                   |
+______________________________________________________________________________________|
+
+Why do we model data as distributions?
+Example: Imagine you're a criminal, and you want to generate thousands of fake 
+identities. Each fake identity, is made up of variables, representing the 
+characteristics of a person (Age, Height).
+
+You can ask the Statistics Deparment of the Government to give you staistics about 
+the age and the height of the population and then sample from these distributions.    |
+
+At first, you may sample from each distribution independently to create a fake 
+identity, but that would produce unreasonable pairs of (Age and Height).
+
+To generate fake identities that make sense, you need the joint distribution,
+otherwise you may end up with an unreasonable combination of age and height.
+
+We can also evaluate probabilities on one of the two variables using conditional
+probability and/or by marginalizing a variable.
+______________________________________________________________________________________|
+
+Learning the distribution p(x) of the data 
+We have have a data set made up of images, and we want to learn a very complex
+distribution that we can then use to sample from.
+
+model the system as a joint distribution by inlcuding some latent variables. 
+
+original image (x0) and Pure noise (zT)
+
+Reverse Process: Neural Network
+x0 ⇄ z1 ⇄ z2 ⇄ z3 ⇄ ... ⇄ zT (markov chain of noisification)                          |
+Forward process: Fixed
+
+In the forward process, add noise to the original image to get another noisy 
+version of the image and so on so on until arrived at the last latent variable 
+zT where T = 1000 and the image becomes pure noise {N(0, I)}. 
+
+The problem is we don't have an analytical formula to reverse this process, 
+to reverse the noise. So we train a neural network to learn to remove this 
+noise. 
+
+Performing many steps on big images is slow. To compress the image a variational
+autoencoder is used.
+______________________________________________________________________________________|
+
+How to generate new data 
+______________________________________________________________________________________|
+
+Training process 
+______________________________________________________________________________________|
+
+U-Net 
+_______________________________________________________________________________________
+
+How to condition the reverse process?
+
+* Since we start from noise in the reverse process, how can the model know what we 
+want as output? How can the model understand out prompt? This is why we need to 
+condition the reverse process.
+
+* If we want to condition our network, we could train a model to learn a joint 
+distribution of the data and the conditioning signal p(x, c), and then sample from 
+this joint distribution. This, however, requires the training of a model for each 
+separate conditioning signal. 
+
+* Another approach, called classifier guidance, involves the training of a separate   |
+model to condition the output. 
+
+* The latest and most successful approach is called classifier-free guidance, in 
+which, instead of training two networks, one conditional network and an 
+unconditional network, we train a single network and during training, with some 
+probability, we set the conditional signal to zero, this way the network becomes a 
+mix of conditioned and unconditioned output and combine them with a weight that 
+indicates how much we want the network to pay attention to the conditioning signal.
+______________________________________________________________________________________|
+
+Classifier Guidance 
+______________________________________________________________________________________|
+
+Classifier free Guidance 
+
+When training the model, in some instances the prompt is given to the model, and in   |
+some cases the prompt is not given. This way the model learns to ignore the prompt 
+but also to pay attention to the prompt.
+
+output = w * (output_{conditioned} - output_{unconditioned}) + output_{unconditioned}
+
+where w is a weight that indicates how much we want the model to pay attention to 
+the conditioning signal (prompt)
+______________________________________________________________________________________|
+
+CLIP (Contrastive Language-Image Pre-training)
+
+We need to feed the model a embedding vector which will allow the model to actually 
+understand the prompt. The embedding vectors represent the meaning of the prompt 
+in an encoded fashion. The disembedding are extracted using the CLIP text encoder. 
+
+CLIP is a model that allows text to connect with images.
+
+"image descriptions" → Text encoder →→→→→→→→→→→→ ↴  ↴  ↴ ... ↴
+                                                t1 t2 t3 ... tN 
+                                        ↱ i1   i1t1, i1t2, i1t3, ..., i1tN
+                                        ↱ i2   i2t1, i2t2, i2t3, ..., i2tN
+`images` → image encoder →→→→→→→→→→→→→→→  i3   i3t1, i3t2, i3t3, ..., i3tN
+                                        ↳ .    ...   ...   ...   ...  ...
+                                        ↳ iN   iNt1, iNt2, iNt3, ..., iNtN
+
+i1 (image 1) is associated with t1 (desc 1) and so on ...
+we can see that the correspondence between the image and correct description lies 
+on the diagonal of the matrix. So to train the model, for the loss function 
+we want the diagonal to have the maximum value and the rest to be zero
+______________________________________________________________________________________|
+
+Latent Diffusion Model 
+
+Stable Diffusion is a latent diffusion model, in which we don't learn the distribution
+p(x) of our dataset of images, but rather, the distribution of a latent 
+representation of out data by using a Variational Autoencoder. 
+
+This allows us to reduce the computation we need to perform the steps needed to 
+generate a sample, because each data will not be represented by a 512x512 image, but
+its latent representation, which is 64x64.
+
+______________________________________________________________________________________|
+
+Autoencoder 
+______________________________________________________________________________________|
+
+The problem with Autoencoders
+
+The code learned by the model makes no sense. That is, the model can just assign any 
+vector to the inputs without the numbers in the vector representing any pattern. The 
+model doesn't capture any semantic relationship between the data.
+______________________________________________________________________________________|
+
+Introducing the Variational Autoencoder 
+
+The variational autoencoder, instead of learning a code, learns a "latent space". The 
+latent space represents the parameters of a (multivariate) distribution.
+______________________________________________________________________________________|
+
+Architecture (Text-To-Image)
+
+Imagine you want to generate a picture of a dog with glasses. We start with a prompt 
+"dog with glasses". This text prompt gets fed into the CLIP encoder and the the prompt 
+embeddings. Alongside we sample some noise and encode it using the variational 
+autoencoder which will give a latent representation of this noise (Z), the pure noise \that has been compressed. 
+
+We send this noise to the unit alongside the conditioning signal from the prompt 
+embeddings. The goal of the unit is to detect how much noise is there and what noise 
+to remove to make it into a picture.
+
+______________________________________________________________________________________|
+
+Architecture (Image-To-Image)
+
+______________________________________________________________________________________|
+
+...
+
+
+
