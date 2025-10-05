@@ -1,0 +1,21 @@
+# .gitignore file contents
+
+# Ignore build artifacts
+build/
+dist/
+
+# Ignore specific configuration or secret files
+config.local.yaml
+.env
+
+# Ignore dataset 
+openwebtext_dataset/
+dataset_code_contests/
+tutorials/
+
+# Ignore models 
+./best_params.pkl 
+./final_model_state.pth 
+./final_model_config.pkl
+./gpt_tuning.db
+./model-01.pkl
