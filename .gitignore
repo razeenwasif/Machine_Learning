@@ -12,3 +12,21 @@ Document_Analysis/Information-Retrieval_and_Classification/q1/my_index.pkl
 Introduction_to_ML/COMP3670/Notes/Vector Calculus.pdf
 Document_Analysis/Assignment-2/a2_code_data/q4/data/movie_reviews_labelled.csv
 Neural-Network/neuralnet-lab/04-dataset.csv
+Transformer/hf_datasets_cache/
+Transformer/dataset_code_contests/
+Transformer/openwebtext_dataset/
+
+Static-word-embedding-and-RNN/a2_code_data/q1/data/w2v_training_data.txt
+Static-word-embedding-and-RNN/a2_code_data/q1/*.model
+Static-word-embedding-and-RNN/a2_code_data/q4/data/movie_reviews_labelled.csv
+Tutorials/Neural-Network/neuralnet-lab/04-dataset.csv
+Tutorials/Document_Analysis/Laboratories/data/movie_reviews_labelled.csv
+GPU_ML_Pipeline/datasets/
+
+*.pyre
+.pyre/
+*.pth
+*.db
+**/datasets/
+__pycache__/
+*.pyc

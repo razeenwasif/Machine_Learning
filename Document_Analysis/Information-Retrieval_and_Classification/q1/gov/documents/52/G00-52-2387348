@@ -1,4 +1,0 @@
-http://newnos.nos.noaa.gov/docat
-
-   echo "** $1 **" >> allrobots.txt cat $1 >> allrobots.txt
-
