@@ -186,14 +186,14 @@ The conda environment intentionally installs the CPU-only PyTorch wheel to avoid
 ```bash
 docker compose -f docker-compose.streamlit.yml up --build
 ```
-- The compose file builds `docker/streamlit.Dockerfile`, which bootstraps the full `ml-rl-cuda12` conda environment on top of the RAPIDS `rapidsai/base:25.08-cuda12.9-py3.11` image, making record linkage available inside the UI.
+- The compose file builds `docker/streamlit.Dockerfile`, which bootstraps the full `ml-rl-cuda12` conda environment defined in `docker/conda-streamlit.yml` on top of the RAPIDS `rapidsai/base:25.08-cuda12.9-py3.11` image, making record linkage available inside the UI.
 - Your repository is bind-mounted into `/workspace`, so edits on the host are reflected live in the container.
 - Streamlit is exposed at [http://localhost:8501](http://localhost:8501). Stop with `Ctrl+C`; remove the container with `docker compose -f docker-compose.streamlit.yml down`.
 
 **Tips**
 - `torch.cuda.is_available()` should report `True` inside the container. If not, confirm the driver/toolkit installation and rerun the `docker run … nvidia-smi` sanity check above.
 - Add extra host directories (datasets, artifacts) by appending more `volumes` entries in `docker-compose.streamlit.yml`.
-- To update Python dependencies (Streamlit, torch, etc.), edit the pip section at the bottom of `ml-rl-cuda12.yml` and rerun `docker compose … up --build`.
+- To update Python dependencies (Streamlit, torch, etc.), edit the pip section inside `docker/conda-streamlit.yml` and rerun `docker compose … up --build`.
 - Use a different port by changing `STREAMLIT_SERVER_PORT` and the published port in the compose file.
 - If your Docker Compose release predates GPU reservations, set `runtime: nvidia` (already configured in the compose file). If Compose still refuses to start, fall back to `docker run --rm -it --gpus all …` with the same image/command.
 
