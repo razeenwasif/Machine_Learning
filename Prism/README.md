@@ -12,6 +12,8 @@ Prism blends deterministic data preparation, GPU-first training, and Optuna-powe
 - [Command Line Quick Start](#command-line-quick-start)
 - [Record Linkage Quick Start](#record-linkage-quick-start)
 - [Streamlit Dashboard](#streamlit-dashboard)
+- [GPU Streamlit Container](#gpu-streamlit-container)
+- [Record Linkage Container](#record-linkage-container)
 - [Data Requirements & Recommendations](#data-requirements--recommendations)
 - [Pipeline Walkthrough](#pipeline-walkthrough)
 - [Configuration Reference](#configuration-reference)
@@ -165,6 +167,69 @@ Dashboard highlights:
 - Preview the dataset (first 500 rows) with automatic caching for responsiveness.
 - Observe metric bar charts, distribution histograms, target balance, and correlation tables.
 - Inspect the cleaning play-by-play (dropped columns, filled values, outlier treatments).
+
+## GPU Streamlit Container
+The conda environment intentionally installs the CPU-only PyTorch wheel to avoid conflicting with RAPIDS' CUDA 12.9 runtime. When you want the Streamlit UI to exercise GPU-enabled PyTorch, use the bundled Docker Compose workflow instead of altering the conda stack.
+
+**Prerequisites**
+- NVIDIA driver on the host plus Docker (or compatible runtime).
+- `nvidia-container-toolkit` configured so containers can access GPUs. On Ubuntu:
+  ```bash
+  sudo apt-get install -y nvidia-container-toolkit
+  sudo nvidia-ctk runtime configure --runtime=docker
+  sudo systemctl restart docker
+  docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
+  ```
+- macOS/Windows users should run Docker Desktop with GPU Passthrough enabled (requires WSL2 on Windows).
+
+**Build & launch the GPU UI**
+```bash
+docker compose -f docker-compose.streamlit.yml up --build
+```
+- The compose file builds `docker/streamlit.Dockerfile`, which layers the project-specific requirements from `docker/requirements.streamlit.txt` on top of the upstream `pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime` image.
+- Your repository is bind-mounted into `/workspace`, so edits on the host are reflected live in the container.
+- Streamlit is exposed at [http://localhost:8501](http://localhost:8501). Stop with `Ctrl+C`; remove the container with `docker compose -f docker-compose.streamlit.yml down`.
+
+**Tips**
+- `torch.cuda.is_available()` should report `True` inside the container. If not, confirm the driver/toolkit installation and rerun the `docker run … nvidia-smi` sanity check above.
+- Add extra host directories (datasets, artifacts) by appending more `volumes` entries in `docker-compose.streamlit.yml`.
+- To update Python dependencies, edit `docker/requirements.streamlit.txt` and rerun `docker compose … up --build`.
+- Use a different port by changing `STREAMLIT_SERVER_PORT` and the published port in the compose file.
+- Docker Compose v2.3+ is required for GPU device reservations. If you're on an older release, fall back to `docker run --rm -it --gpus all …` with the same image/command.
+
+## Record Linkage Container
+When you want to run the GPU record-linkage pipeline without activating the conda environment locally, use the dedicated container workflow.
+
+**Build the image**
+```bash
+docker compose -f docker-compose.recordlinkage.yml build
+```
+The image bootstraps the full RAPIDS stack defined in `ml-rl-cuda12.yml` so the CLI runs with NVIDIA acceleration out of the box.
+
+**Run the pipeline**
+```bash
+docker compose -f docker-compose.recordlinkage.yml run --rm \
+  recordlinkage \
+  python -m src.main link --dataset assignment_datasets
+```
+- Replace `--dataset assignment_datasets` with any CLI flags you normally pass (`--config`, `--output`, etc.).
+- Results and logs are written back into the bind-mounted repository (see `volumes` in the compose file).
+
+**Tips**
+- For large source data outside the repo, add more bind mounts via `volumes` in `docker-compose.recordlinkage.yml` or pass `-v /data:/workspace/data` inline with `docker compose run`.
+- The default command runs the linkage CLI; add `--` followed by extra args to append without repeating `python -m …`. Example:
+  ```bash
+  docker compose -f docker-compose.recordlinkage.yml run --rm recordlinkage -- --config recordLinkage/config/pipeline.toml
+  ```
+- As with the Streamlit container, ensure `nvidia-container-toolkit` is configured so the service can see your GPUs. Use `docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi` to validate the host setup.
+- Docker Compose v2.3+ is required for the GPU reservations in the compose file. On older releases, run the image directly:
+  ```bash
+  docker run --rm -it --gpus all \
+    -v "$(pwd)":/workspace \
+    -w /workspace \
+    prism-recordlinkage \
+    python -m src.main link --dataset assignment_datasets
+  ```
 
 ## Data Requirements & Recommendations
 - Input formats: `.csv`, `.tsv`, `.txt`, `.json`, `.jsonl`, `.parquet`.

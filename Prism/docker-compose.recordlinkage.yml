@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  recordlinkage:
+    image: prism-recordlinkage:latest
+    build:
+      context: .
+      dockerfile: docker/recordlinkage.Dockerfile
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command: ["python", "-m", "src.main", "link"]
+    environment:
+      PYTHONUNBUFFERED: "1"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
