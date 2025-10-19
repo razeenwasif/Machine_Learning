@@ -1,12 +1,17 @@
-FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+FROM rapidsai/base:25.08-cuda12.9-py3.11
 
-WORKDIR /opt/streamlit
+WORKDIR /opt/prism
 
-COPY docker/requirements.streamlit.txt .
+COPY ml-rl-cuda12.yml .
 
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.streamlit.txt
+RUN mamba env create -f ml-rl-cuda12.yml \
+    && conda clean -afy
+
+ENV PATH="/opt/conda/envs/ml-rl-cuda12/bin:${PATH}"
 
 WORKDIR /workspace
 
+COPY docker/streamlit-entrypoint.sh /usr/local/bin/streamlit-entrypoint.sh
+
+ENTRYPOINT ["streamlit-entrypoint.sh"]
 CMD ["streamlit", "run", "src/gui/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
