@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -183,6 +184,7 @@ class RecordLinkagePipeline:
         }
 
         output_path_final = Path(pipeline_cfg.output_csv).expanduser().resolve()
+        self._prepare_output_path(output_path_final)
         rl_cli.saveLinkResult.save_linkage_set(str(output_path_final), class_match_set)
 
         return RecordLinkageResult(
@@ -204,6 +206,28 @@ class RecordLinkagePipeline:
             analysis_a=analysis_a,
             analysis_b=analysis_b,
         )
+
+    @staticmethod
+    def _prepare_output_path(path: Path) -> None:
+        """Ensure the linkage output file can be created or overwritten."""
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+        except PermissionError as exc:
+            raise PermissionError(
+                f"Cannot create directory for record linkage output: {path.parent}"
+            ) from exc
+
+        if path.exists():
+            try:
+                path.unlink()
+            except PermissionError:
+                try:
+                    os.chmod(path, 0o666)
+                    path.unlink()
+                except Exception as unlink_exc:
+                    raise PermissionError(
+                        f"Unable to overwrite existing record linkage output file: {path}"
+                    ) from unlink_exc
 
     @staticmethod
     def _apply_overrides(
