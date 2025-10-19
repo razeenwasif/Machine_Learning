@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -41,11 +42,36 @@ def _get_linkage_dataset_keys(config_path: str) -> list[str]:
         return []
 
 
+def _chown_if_requested(path: Path) -> None:
+    """Adjust ownership to match the host user if PRISM_UID/GID are exported."""
+    if not path.exists():
+        return
+    uid_env = os.environ.get("PRISM_UID")
+    gid_env = os.environ.get("PRISM_GID")
+    if not uid_env or not gid_env:
+        return
+    try:
+        uid = int(uid_env)
+        gid = int(gid_env)
+    except ValueError:
+        return
+    try:
+        os.chown(path, uid, gid)
+    except PermissionError:
+        # We are running as an unprivileged user inside the container.
+        return
+    except OSError:
+        # Path may no longer exist or filesystem may not allow chown.
+        return
+
+
 def _persist_uploaded_file(upload) -> Path:
     suffix = Path(upload.name).suffix or ".csv"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(upload.getbuffer())
-        return Path(tmp.name)
+        persisted_path = Path(tmp.name)
+    _chown_if_requested(persisted_path)
+    return persisted_path
 
 
 @st.cache_data(show_spinner=False)
@@ -266,6 +292,7 @@ def _build_linked_dataset(result: RecordLinkageResult) -> tuple[Path, pd.DataFra
 
     tmp_path = Path(tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name)
     linked_df.to_csv(tmp_path, index=False)
+    _chown_if_requested(tmp_path)
     preview_df = linked_df.head(200)
     return tmp_path, preview_df
 
@@ -412,6 +439,7 @@ def main() -> None:
                                 use_gpu=use_gpu_override,
                                 skip_filters=skip_filters,
                             )
+                            _chown_if_requested(Path(result.output_path))
                             linked_path, linked_preview = _build_linked_dataset(result)
                             st.session_state["linkage_result"] = result
                             st.session_state["linked_dataset_path"] = str(linked_path)
