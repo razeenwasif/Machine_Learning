@@ -214,7 +214,7 @@ docker compose -f docker-compose.recordlinkage.yml run --rm \
 ```
 - Replace `--dataset assignment_datasets` with any CLI flags you normally pass (`--config`, `--output`, etc.).
 - Results and logs are written back into the bind-mounted repository (see `volumes` in the compose file).
-- The container focuses on the record-linkage pipeline; PyTorch/Streamlit are intentionally omitted to avoid CUDA runtime clashes. Use the Streamlit container for GPU UI workloads.
+- The service stays focused on the CLI workflow. Launch the Streamlit container when you need the UI (it shares the same `ml-rl-cuda12` conda environment).
 
 **Tips**
 - For large source data outside the repo, add more bind mounts via `volumes` in `docker-compose.recordlinkage.yml` or pass `-v /data:/workspace/data` inline with `docker compose run`.
