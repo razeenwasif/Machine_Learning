@@ -1,6 +1,7 @@
 name: ml-rl-cuda12
 channels:
   - rapidsai
+  - pytorch
   - nvidia
   - conda-forge
   - defaults
@@ -16,7 +17,7 @@ dependencies:
   - cuvs=25.08
   - cucim=25.08
   - cupy
-  - faiss-gpu
+  - faiss-gpu=1.12.0
   - numba
   - rapidfuzz
   - pandas

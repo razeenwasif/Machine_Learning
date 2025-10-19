@@ -193,6 +193,7 @@ docker compose -f docker-compose.streamlit.yml up --build
 **Tips**
 - `torch.cuda.is_available()` should report `True` inside the container. If not, confirm the driver/toolkit installation and rerun the `docker run … nvidia-smi` sanity check above.
 - Add extra host directories (datasets, artifacts) by appending more `volumes` entries in `docker-compose.streamlit.yml`.
+- The container runs as your current UID/GID (`user: "${PRISM_UID:-1000}:${PRISM_GID:-1000}"`). Export `PRISM_UID=$(id -u)` and `PRISM_GID=$(id -g)` before launching if they’re not already set.
 - To update Python dependencies (Streamlit, torch, etc.), edit the pip section inside `docker/conda-streamlit.yml` and rerun `docker compose … up --build`.
 - Use a different port by changing `STREAMLIT_SERVER_PORT` and the published port in the compose file.
 - If your Docker Compose release predates GPU reservations, set `runtime: nvidia` (already configured in the compose file). If Compose still refuses to start, fall back to `docker run --rm -it --gpus all …` with the same image/command.
@@ -215,6 +216,7 @@ docker compose -f docker-compose.recordlinkage.yml run --rm \
 - Replace `--dataset assignment_datasets` with any CLI flags you normally pass (`--config`, `--output`, etc.).
 - Results and logs are written back into the bind-mounted repository (see `volumes` in the compose file).
 - The service stays focused on the CLI workflow. Launch the Streamlit container when you need the UI (it shares the same `ml-rl-cuda12` conda environment).
+- The container inherits your UID/GID (`user: "${PRISM_UID:-1000}:${PRISM_GID:-1000}"`). Export `PRISM_UID`/`PRISM_GID` as shown above if they’re not present.
 
 **Tips**
 - For large source data outside the repo, add more bind mounts via `volumes` in `docker-compose.recordlinkage.yml` or pass `-v /data:/workspace/data` inline with `docker compose run`.

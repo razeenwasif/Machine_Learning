@@ -7,7 +7,7 @@ COPY docker/conda-streamlit.yml .
 RUN mamba env create -f conda-streamlit.yml \
     && conda clean -afy
 
-ENV PATH="/opt/conda/envs/ml-rl-cuda12/bin:${PATH}"
+ENV PATH="/opt/conda/envs/ml-rl-cuda12/bin:/opt/conda/bin:${PATH}"
 
 WORKDIR /workspace
 
