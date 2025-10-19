@@ -1,10 +1,10 @@
-FROM condaforge/miniforge3:24.9.0-0
+FROM rapidsai/base:25.08-cuda12.9-py3.11
 
 WORKDIR /opt/prism
 
-COPY ml-rl-cuda12.yml .
+COPY docker/conda-recordlinkage.yml .
 
-RUN conda env create -f ml-rl-cuda12.yml \
+RUN mamba env create -f conda-recordlinkage.yml \
     && conda clean -afy
 
 ENV PATH="/opt/conda/envs/ml-rl-cuda12/bin:${PATH}"

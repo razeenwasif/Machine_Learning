@@ -195,7 +195,7 @@ docker compose -f docker-compose.streamlit.yml up --build
 - Add extra host directories (datasets, artifacts) by appending more `volumes` entries in `docker-compose.streamlit.yml`.
 - To update Python dependencies, edit `docker/requirements.streamlit.txt` and rerun `docker compose … up --build`.
 - Use a different port by changing `STREAMLIT_SERVER_PORT` and the published port in the compose file.
-- Docker Compose v2.3+ is required for GPU device reservations. If you're on an older release, fall back to `docker run --rm -it --gpus all …` with the same image/command.
+- If your Docker Compose release predates GPU reservations, set `runtime: nvidia` (already configured in the compose file). If Compose still refuses to start, fall back to `docker run --rm -it --gpus all …` with the same image/command.
 
 ## Record Linkage Container
 When you want to run the GPU record-linkage pipeline without activating the conda environment locally, use the dedicated container workflow.
@@ -204,7 +204,7 @@ When you want to run the GPU record-linkage pipeline without activating the cond
 ```bash
 docker compose -f docker-compose.recordlinkage.yml build
 ```
-The image bootstraps the full RAPIDS stack defined in `ml-rl-cuda12.yml` so the CLI runs with NVIDIA acceleration out of the box.
+The image bootstraps the RAPIDS stack defined in `docker/conda-recordlinkage.yml` so the CLI runs with NVIDIA acceleration out of the box.
 
 **Run the pipeline**
 ```bash
@@ -214,6 +214,7 @@ docker compose -f docker-compose.recordlinkage.yml run --rm \
 ```
 - Replace `--dataset assignment_datasets` with any CLI flags you normally pass (`--config`, `--output`, etc.).
 - Results and logs are written back into the bind-mounted repository (see `volumes` in the compose file).
+- The container focuses on the record-linkage pipeline; PyTorch/Streamlit are intentionally omitted to avoid CUDA runtime clashes. Use the Streamlit container for GPU UI workloads.
 
 **Tips**
 - For large source data outside the repo, add more bind mounts via `volumes` in `docker-compose.recordlinkage.yml` or pass `-v /data:/workspace/data` inline with `docker compose run`.
@@ -222,7 +223,7 @@ docker compose -f docker-compose.recordlinkage.yml run --rm \
   docker compose -f docker-compose.recordlinkage.yml run --rm recordlinkage -- --config recordLinkage/config/pipeline.toml
   ```
 - As with the Streamlit container, ensure `nvidia-container-toolkit` is configured so the service can see your GPUs. Use `docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi` to validate the host setup.
-- Docker Compose v2.3+ is required for the GPU reservations in the compose file. On older releases, run the image directly:
+- If Compose refuses to honour the GPU runtime, fall back to a direct run:
   ```bash
   docker run --rm -it --gpus all \
     -v "$(pwd)":/workspace \
