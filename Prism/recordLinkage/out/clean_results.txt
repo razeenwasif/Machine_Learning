@@ -1,0 +1,144 @@
+Load data set from file: src/datasets/comp3430_comp8430-rl-additional-datasets/clean-A-100000.csv
+  Record identifier attribute: rec_id
+  Attributes to use:
+    first_name middle_name last_name gender birth_date street_address suburb postcode state phone current_age email
+  Loaded 100000 records.
+
+Load data set from file: src/datasets/comp3430_comp8430-rl-additional-datasets/clean-B-100000.csv
+  Record identifier attribute: rec_id
+  Attributes to use:
+    first_name middle_name last_name gender birth_date street_address suburb postcode state phone current_age email
+  Loaded 100000 records.
+
+Load truth data from file: src/datasets/comp3430_comp8430-rl-additional-datasets/clean-true-matches-100000.csv
+  Loaded 50000 true matching record pairs
+
+Run simple blocking:
+  List of blocking key attributes: ['state']
+  Number of records to be blocked: 100000
+Run simple blocking:
+  List of blocking key attributes: ['state']
+  Number of records to be blocked: 100000
+Running ANN candidate generation for 19817 x 20077 records...
+  Generated 263700 candidate pairs from ANN search.
+Running ANN candidate generation for 5038 x 4947 records...
+  Generated 41024 candidate pairs from ANN search.
+Running ANN candidate generation for 5098 x 5099 records...
+  Generated 38608 candidate pairs from ANN search.
+Running ANN candidate generation for 29734 x 29721 records...
+  Generated 413407 candidate pairs from ANN search.
+Running ANN candidate generation for 10051 x 10000 records...
+  Generated 158433 candidate pairs from ANN search.
+Running ANN candidate generation for 20165 x 20168 records...
+  Generated 294960 candidate pairs from ANN search.
+Running ANN candidate generation for 5016 x 5025 records...
+  Generated 51794 candidate pairs from ANN search.
+Running ANN candidate generation for 5081 x 4963 records...
+  Generated 43985 candidate pairs from ANN search.
+Comparing 1305911 candidate pairs...
+  Comparing attribute values for candidate pairs chunk 1 (using native cudf and custom kernels where possible)...
+    sample sim (first_name->first_name): [0.1428571492433548, 0.0, 0.0, 0.0, 0.0]
+    sample sim (middle_name->middle_name): [0.0, 0.0, 0.0, 0.0, 0.0]
+    sample sim (last_name->last_name): [0.7385714054107666, 1.0, -0.09259258955717087, -0.5694444179534912, -0.013888888992369175]
+    sample sim (street_address->street_address): [0.20000000298023224, 0.2777777910232544, 0.47058823704719543, 0.30000001192092896, 0.2222222238779068]
+    sample sim (suburb->suburb): [1.0, 1.0, 1.0, 1.0, 1.0]
+    sample sim (state->state): [1.0, 1.0, 1.0, 1.0, 1.0]
+    Processing 'gender_comp' on CPU.
+    sample sim (gender->gender): [1.0, 0.0, 1.0, 1.0, 0.0]
+    Processing 'date_digits_comp' on CPU.
+    sample sim (birth_date->birth_date): [0.0, 0.0, 0.0, 0.0, 0.0]
+    Processing 'postcode_exact_comp' on CPU.
+    sample sim (postcode->postcode): [1.0, 1.0, 1.0, 1.0, 1.0]
+    Processing 'phone_suffix_comp' on CPU.
+    sample sim (phone->phone): [0.0, 0.0, 0.0, 0.0, 0.0]
+    Processing 'age_similarity_comp' on CPU.
+    sample sim (current_age->current_age): [0.0, 0.6666666666666667, 0.9166666666666666, 0.75, 0.9166666666666666]
+    sample sim (email->email): [0.43478259444236755, 0.3636363744735718, 0.4000000059604645, 0.42307692766189575, 0.5]
+  Comparing attribute values for candidate pairs chunk 2 (using native cudf and custom kernels where possible)...
+    sample sim (first_name->first_name): [0.0, 0.0, 0.0, 0.0, 0.0]
+    sample sim (middle_name->middle_name): [0.0, 0.0, 0.0, 0.0, 0.0]
+    sample sim (last_name->last_name): [-0.10000000149011612, 0.550000011920929, 0.1944444477558136, 0.375, 1.0]
+    sample sim (street_address->street_address): [0.10000000149011612, 0.42307692766189575, 0.3461538553237915, 0.1538461595773697, 0.3076923191547394]
+    sample sim (suburb->suburb): [1.0, 1.0, 1.0, 0.3333333432674408, 0.0]
+    sample sim (state->state): [1.0, 1.0, 1.0, 1.0, 1.0]
+    Processing 'gender_comp' on CPU.
+    sample sim (gender->gender): [0.0, 1.0, 0.0, 0.0, 1.0]
+    Processing 'date_digits_comp' on CPU.
+    sample sim (birth_date->birth_date): [0.0, 0.0, 0.0, 0.0, 0.0]
+    Processing 'postcode_exact_comp' on CPU.
+    sample sim (postcode->postcode): [1.0, 1.0, 1.0, 0.0, 0.0]
+    Processing 'phone_suffix_comp' on CPU.
+    sample sim (phone->phone): [0.0, 0.0, 0.0, 0.0, 0.0]
+    Processing 'age_similarity_comp' on CPU.
+    sample sim (current_age->current_age): [0.16666666666666663, 0.0, 0.9166666666666666, 0.25, 0.5]
+    sample sim (email->email): [0.6086956262588501, 0.23999999463558197, 0.3448275923728943, 0.47999998927116394, 0.7777777910232544]
+  Finished comparing 1305911 record pairs
+
+Supervised random forest classification of 55768 record pairs
+  Total true matches in dataset: 49997
+  Total non-matches in dataset: 5771
+  Sweeping non-match ratios [1, 2, 3, 4] and max_depth values [12, 15, 18]
+  Evaluating ratio 1:1 (non-matches sampled: 5771)
+    Trying RandomForest max_depth=12...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+    Trying RandomForest max_depth=15...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+    Trying RandomForest max_depth=18...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+  Evaluating ratio 1:2 (non-matches sampled: 5771)
+    Trying RandomForest max_depth=12...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+    Trying RandomForest max_depth=15...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+    Trying RandomForest max_depth=18...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+  Evaluating ratio 1:3 (non-matches sampled: 5771)
+    Trying RandomForest max_depth=12...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+    Trying RandomForest max_depth=15...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+    Trying RandomForest max_depth=18...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+  Evaluating ratio 1:4 (non-matches sampled: 5771)
+    Trying RandomForest max_depth=12...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+    Trying RandomForest max_depth=15...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+    Trying RandomForest max_depth=18...
+      Validation accuracy: 0.895, precision: 0.895, recall: 1.000, F1: 0.944 (threshold 0.800)
+  Selected configuration -> ratio 1:1, max_depth=12 (validation F1=0.944)
+  Building final training sample with ratio 1:1 (non-matches: 5771)
+  Number of training records: 37365
+  Number of testing records: 18403
+
+  Classifier accuracy on sampled test set: 0.895
+
+  Validation threshold search: thr=0.800 -> precision=0.895, recall=1.000, F1=0.944
+  Precision-focused validation threshold: thr=0.850 -> precision=0.895, recall=0.994, F-beta(0.25)=0.900
+  Predicting probabilities on 55768 pairs in 1 chunks of size 1000000...
+  Probability distribution - 50th: 0.898, 75th: 0.898, 90th: 0.898, 95th: 0.900, 99th: 0.923
+  Final threshold summary (min precision 0.55): thr=0.850 -> precision=0.897, recall=0.995, F1=0.903
+  Using decision threshold: 0.850 (validation precision=0.895, recall=1.000, F1=0.944; precision-focused validation precision=0.895, recall=0.994, F-beta=0.900; final precision=0.897, recall=0.995, F1=0.903; provided threshold was 0.400)
+  Threshold diagnostic: 55413 predicted matches, 49732 true positives (est. precision 0.897)
+
+  Cleaning up memory before final result collection...
+  Collecting results in 1 chunks of size 1000000...
+  Classified 55413 record pairs as matches and 355 as non-matches
+
+Blocking evaluation:
+====================
+Reduction ratio: 1.000
+Pairs completeness: 1.000
+Pairs quality: 0.897
+Linkage evaluation:
+===================
+Calculating confusion matrix using 55413 classified matches, 355 classified non-matches, and 50000 true matches
+  TP=49997, FP=5416, FN=3, TN=9999944584
+
+Accuracy: 1.000
+Precision: 0.902
+Recall: 1.000
+F-measure: 0.949
+Write linkage results to file: ./out/data_wrangling_rl_best_results_2025_u7283652.csv
+  Wrote 55413 linked record pairs
+

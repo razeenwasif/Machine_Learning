@@ -1,0 +1,282 @@
+# Default dataset preset to run when no --dataset flag is provided.
+default_dataset = "assignment_datasets"
+
+[defaults]
+# Column name used as the unique identifier (applies to both datasets).
+id_column = "rec_id"
+
+# Attributes to load from each dataset when no dataset-specific override is given.
+attributes = [
+  "first_name",
+  "middle_name",
+  "last_name",
+  "gender",
+  "birth_date",
+  "street_address",
+  "suburb",
+  "postcode",
+  "state",
+  "phone",
+  "current_age",
+  "email",
+]
+
+# Default path for the output CSV containing the final matched pairs.
+output_csv = "./out/record_linkage_matches.csv"
+
+[runtime]
+# Toggle GPU accelerated comparisons globally. Individual runs can override this with --use-gpu/--no-gpu.
+use_gpu = true
+
+[blocking.defaults]
+# Simple partitioning applied before ANN search. Set an empty list to disable.
+partition_attributes = ["state"]
+
+[blocking.defaults.ann]
+enabled = true
+attributes = ["first_name", "last_name", "suburb"]
+k_neighbors = 25
+similarity_threshold = 0.50
+
+[comparison]
+default_profile = "standard"
+
+[[comparison.profiles.standard]]
+function = "jaccard_comp_gpu"
+attr_a = "first_name"
+attr_b = "first_name"
+
+[[comparison.profiles.standard]]
+function = "dice_comp_gpu"
+attr_a = "middle_name"
+attr_b = "middle_name"
+
+[[comparison.profiles.standard]]
+function = "jaro_winkler_comp_gpu"
+attr_a = "last_name"
+attr_b = "last_name"
+
+[[comparison.profiles.standard]]
+function = "levenshtein_comp_gpu"
+attr_a = "street_address"
+attr_b = "street_address"
+
+[[comparison.profiles.standard]]
+function = "levenshtein_comp_gpu"
+attr_a = "suburb"
+attr_b = "suburb"
+
+[[comparison.profiles.standard]]
+function = "exact_comp"
+attr_a = "state"
+attr_b = "state"
+
+[[comparison.profiles.standard]]
+function = "gender_comp"
+attr_a = "gender"
+attr_b = "gender"
+
+[[comparison.profiles.standard]]
+function = "date_digits_comp"
+attr_a = "birth_date"
+attr_b = "birth_date"
+
+[[comparison.profiles.standard]]
+function = "postcode_exact_comp"
+attr_a = "postcode"
+attr_b = "postcode"
+
+[[comparison.profiles.standard]]
+function = "phone_suffix_comp"
+attr_a = "phone"
+attr_b = "phone"
+
+[[comparison.profiles.standard]]
+function = "age_similarity_comp"
+attr_a = "current_age"
+attr_b = "current_age"
+
+[[comparison.profiles.standard]]
+function = "levenshtein_comp_gpu"
+attr_a = "email"
+attr_b = "email"
+
+[classification]
+default_profile = "balanced"
+n_estimators = 250
+base_threshold = 0.40
+
+[classification.profiles.balanced]
+threshold_offset = 0.00
+min_precision = 0.55
+min_recall = 0.05
+precision_beta = 0.25
+
+[classification.profiles.assignment_dirty]
+threshold_offset = 0.01
+min_precision = 0.45
+min_recall = 0.10
+precision_beta = 1.00
+
+[classification.profiles.very_dirty]
+threshold_offset = -0.02
+min_precision = 0.45
+min_recall = 0.10
+precision_beta = 1.00
+
+[filters]
+default_profile = "baseline"
+
+[filters.profiles.baseline]
+enabled = false
+enforce_all = []
+
+[filters.profiles.clean]
+enabled = true
+enforce_all = []
+
+[[filters.profiles.clean.groups]]
+all = ["sim_last_name>=0.90", "sim_postcode>=0.99", "sim_suburb>=0.95"]
+any = ["sim_first_name>=0.75", "sim_street_address>=0.90", "sim_phone>=0.90", "sim_birth_date>=0.99", "sim_gender>=0.90"]
+min_any = 1
+
+[[filters.profiles.clean.groups]]
+all = ["sim_phone>=0.90", "sim_last_name>=0.90"]
+any = ["sim_first_name>=0.75", "sim_gender>=0.90"]
+min_any = 1
+
+[[filters.profiles.clean.groups]]
+all = ["sim_birth_date>=0.99", "sim_last_name>=0.90"]
+any = ["sim_first_name>=0.75", "sim_gender>=0.90"]
+min_any = 1
+
+[[filters.profiles.clean.groups]]
+all = ["sim_last_name>=0.90", "sim_street_address>=0.90", "sim_suburb>=0.97"]
+any = []
+min_any = 0
+
+[filters.profiles.little_dirty]
+enabled = true
+enforce_all = []
+
+[[filters.profiles.little_dirty.groups]]
+all = ["sim_last_name>=0.85", "sim_postcode>=0.97", "sim_suburb>=0.92"]
+any = ["sim_first_name>=0.70", "sim_street_address>=0.88", "sim_phone>=0.88", "sim_birth_date>=0.97", "sim_gender>=0.88"]
+min_any = 1
+
+[[filters.profiles.little_dirty.groups]]
+all = ["sim_last_name>=0.85", "sim_street_address>=0.88", "sim_suburb>=0.92"]
+any = []
+min_any = 0
+
+[[filters.profiles.little_dirty.groups]]
+all = ["sim_last_name>=0.85", "sim_phone>=0.88"]
+any = ["sim_first_name>=0.70", "sim_gender>=0.88"]
+min_any = 1
+
+[[filters.profiles.little_dirty.groups]]
+all = ["sim_last_name>=0.85", "sim_birth_date>=0.97"]
+any = ["sim_first_name>=0.70", "sim_gender>=0.88"]
+min_any = 1
+
+[[filters.profiles.little_dirty.groups]]
+all = []
+any = ["sim_first_name>=0.70", "sim_last_name>=0.85", "sim_street_address>=0.88", "sim_phone>=0.88", "sim_birth_date>=0.97", "sim_postcode>=0.97"]
+min_any = 3
+
+[filters.profiles.very_dirty]
+enabled = true
+enforce_all = ["sim_last_name>=0.65"]
+
+[[filters.profiles.very_dirty.groups]]
+all = ["sim_postcode>=0.84", "sim_suburb>=0.74"]
+any = ["sim_first_name>=0.55", "sim_street_address>=0.68", "sim_phone>=0.72", "sim_birth_date>=0.86", "sim_gender>=0.80", "sim_email>=0.82"]
+min_any = 2
+
+[[filters.profiles.very_dirty.groups]]
+all = ["sim_phone>=0.78"]
+any = ["sim_last_name>=0.70", "sim_first_name>=0.55", "sim_gender>=0.80", "sim_postcode>=0.84"]
+min_any = 2
+
+[[filters.profiles.very_dirty.groups]]
+all = ["sim_birth_date>=0.90"]
+any = ["sim_last_name>=0.70", "sim_first_name>=0.55", "sim_gender>=0.80", "sim_postcode>=0.84"]
+min_any = 2
+
+[[filters.profiles.very_dirty.groups]]
+all = ["sim_email>=0.88"]
+any = ["sim_last_name>=0.65", "sim_postcode>=0.84", "sim_suburb>=0.74", "sim_phone>=0.72"]
+min_any = 2
+
+[filters.profiles.assignment_dirty]
+enabled = true
+enforce_all = ["sim_last_name>=0.68"]
+
+[[filters.profiles.assignment_dirty.groups]]
+all = ["sim_last_name>=0.72"]
+any = ["sim_postcode>=0.83", "sim_suburb>=0.72", "sim_street_address>=0.70"]
+min_any = 1
+
+[[filters.profiles.assignment_dirty.groups]]
+all = ["sim_last_name>=0.70"]
+any = ["sim_phone>=0.78", "sim_email>=0.83", "sim_current_age>=0.73", "sim_birth_date>=0.90"]
+min_any = 1
+
+[[filters.profiles.assignment_dirty.groups]]
+all = ["sim_postcode>=0.80", "sim_last_name>=0.70"]
+any = ["sim_first_name>=0.58", "sim_gender>=0.80"]
+min_any = 1
+
+[[filters.profiles.assignment_dirty.groups]]
+all = ["sim_last_name>=0.70", "sim_birth_date>=0.90"]
+any = ["sim_first_name>=0.58", "sim_gender>=0.80", "sim_phone>=0.78"]
+min_any = 1
+
+[[filters.profiles.assignment_dirty.groups]]
+all = ["sim_email>=0.90"]
+any = ["sim_last_name>=0.70", "sim_postcode>=0.80", "sim_suburb>=0.72"]
+min_any = 1
+
+[[datasets]]
+key = "assignment_datasets"
+dataset_a = "../datasets/data_wrangling_rl1_2025_u7283652.csv"
+dataset_b = "../datasets/data_wrangling_rl2_2025_u7283652.csv"
+truth = "../datasets/data_wrangling_rlgt_2025_u7283652.csv"
+profile = "assignment_dirty"
+classification_profile = "assignment_dirty"
+comparison_profile = "standard"
+blocking_partition_attributes = ["state"]
+blocking_ann_attributes = ["first_name", "last_name", "street_address", "suburb", "email"]
+blocking_k_neighbors = 35
+blocking_similarity_threshold = 0.45
+output_csv = "./out/data_wrangling_rl_best_results_2025_u7283652.csv"
+
+[[datasets]]
+key = "clean_100000"
+dataset_a = "../datasets/comp3430_comp8430-rl-additional-datasets/clean-A-100000.csv"
+dataset_b = "../datasets/comp3430_comp8430-rl-additional-datasets/clean-B-100000.csv"
+truth = "../datasets/comp3430_comp8430-rl-additional-datasets/clean-true-matches-100000.csv"
+profile = "clean"
+classification_profile = "balanced"
+comparison_profile = "standard"
+
+[[datasets]]
+key = "little-dirty_100000"
+dataset_a = "../datasets/comp3430_comp8430-rl-additional-datasets/little-dirty-A-100000.csv"
+dataset_b = "../datasets/comp3430_comp8430-rl-additional-datasets/little-dirty-B-100000.csv"
+truth = "../datasets/comp3430_comp8430-rl-additional-datasets/little-dirty-true-matches-100000.csv"
+profile = "little_dirty"
+classification_profile = "balanced"
+comparison_profile = "standard"
+
+[[datasets]]
+key = "very-dirty_100000"
+dataset_a = "../datasets/comp3430_comp8430-rl-additional-datasets/very-dirty-A-100000.csv"
+dataset_b = "../datasets/comp3430_comp8430-rl-additional-datasets/very-dirty-B-100000.csv"
+truth = "../datasets/comp3430_comp8430-rl-additional-datasets/very-dirty-true-matches-100000.csv"
+profile = "very_dirty"
+classification_profile = "very_dirty"
+comparison_profile = "standard"
+blocking_ann_attributes = ["first_name", "last_name", "street_address", "suburb"]
+blocking_k_neighbors = 30
+blocking_similarity_threshold = 0.48
