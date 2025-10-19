@@ -6,7 +6,6 @@ services:
     volumes:
       - .:/workspace
     working_dir: /workspace
-    user: "${PRISM_UID:-1000}:${PRISM_GID:-1000}"
     ports:
       - "8501:8501"
     environment:
