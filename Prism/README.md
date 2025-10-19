@@ -93,7 +93,14 @@ pip install -r requirements.txt
 - Pass `--no-gpu` to force CPU execution if CUDA drivers are unavailable or unstable.
 
 ### Record linkage dependencies
-The record linkage workflow depends on the RAPIDS stack (`cudf`, `cuml`, `cupy`, `faiss`, `numba`, `rapidfuzz`). Install them via Conda following the instructions in `recordLinkage/README.md`. The AutoML pipeline does not require these packages.
+The record linkage workflow depends on the RAPIDS stack (`cudf`, `cuml`, `cupy`, `faiss`, `numba`, `rapidfuzz`). Use the provided `rapids-rl.yml` to create the compatible environment:
+
+```bash
+conda env create -f rapids-rl.yml
+conda activate rapids-rl
+```
+
+This pins Python 3.10, RAPIDS 23.06 (CUDA 11.8), and matching dependencies. The AutoML pipeline does not require these packages and can be installed with only `requirements.txt` when record linkage is not needed.
 
 ## Command Line Quick Start
 Run a full AutoML cycle against a dataset:
@@ -143,7 +150,7 @@ Useful flags:
 
 The CLI prints dataset shapes, notable data-quality notes, blocking metrics, linkage quality (precision/recall/F1/accuracy), and stage runtimes. Matched pairs are written to the configured CSV.
 
-Prefer a GUI? Open `streamlit run src/gui/app.py` and use the “Record linkage (optional)” panel to execute a preset, preview the fused dataset, download the results, and push the linked records directly into the AutoML workflow.
+Prefer a GUI? Open `streamlit run src/gui/app.py` and use the “Record linkage (optional)” panel to execute a preset, preview the fused dataset, download the results, and push the linked records directly into the AutoML workflow. The panel uses the same RAPIDS environment as the CLI, so activate `rapids-rl` before launching Streamlit when you plan to run linkage.
 
 ## Streamlit Dashboard
 Launch the interactive UI for dataset uploads, parameter tuning, and charting:

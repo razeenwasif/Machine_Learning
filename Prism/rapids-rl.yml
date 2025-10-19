@@ -1,0 +1,23 @@
+name: ml-rl-cuda12
+channels:
+  - rapidsai
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - rapids=23.06        # This will install the correct cupy and cudatoolkit
+  - pandas=1.5.3
+  - cupy-cuda11x==12.1.0 
+  - cudatoolkit=11.8
+  - pyarrow=11.0.0
+  - faiss-gpu=1.7.4
+  - rapidfuzz=3.4.0
+  - pip
+  - pip:
+      - torch --index-url https://download.pytorch.org/whl/cu118
+      - optuna==3.6.1
+      - streamlit==1.34.0
+      - plotly==5.20.0
+      - rich==13.7.1
+      - pydeck==0.8.1b0

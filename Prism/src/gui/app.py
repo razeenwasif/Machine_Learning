@@ -328,8 +328,10 @@ def main() -> None:
         st.session_state["linked_preview_df"] = None
     if "linkage_config_path" not in st.session_state:
         st.session_state["linkage_config_path"] = DEFAULT_LINKAGE_CONFIG
-    if "linkage_output_path" not in st.session_state:
-        st.session_state["linkage_output_path"] = ""
+    if "linkage_output_override" not in st.session_state:
+        st.session_state["linkage_output_override"] = ""
+    if "latest_linkage_output" not in st.session_state:
+        st.session_state["latest_linkage_output"] = ""
     if "linkage_use_gpu" not in st.session_state:
         st.session_state["linkage_use_gpu"] = True
     if "linkage_skip_filters" not in st.session_state:
@@ -379,7 +381,7 @@ def main() -> None:
             dataset_key = st.text_input("Dataset key", key="linkage_dataset_key_input")
         output_override = st.text_input(
             "Output CSV override (optional)",
-            key="linkage_output_path",
+            key="linkage_output_override",
             placeholder="Leave blank to use config value",
         )
         use_gpu_override = st.checkbox("Force GPU comparisons", key="linkage_use_gpu")
@@ -414,7 +416,7 @@ def main() -> None:
                             st.session_state["linkage_result"] = result
                             st.session_state["linked_dataset_path"] = str(linked_path)
                             st.session_state["linked_preview_df"] = linked_preview
-                            st.session_state["linkage_output_path"] = str(result.output_path)
+                            st.session_state["latest_linkage_output"] = str(result.output_path)
                             st.success(
                                 f"Matched {result.match_count:,} pairs (saved to {result.output_path})."
                             )

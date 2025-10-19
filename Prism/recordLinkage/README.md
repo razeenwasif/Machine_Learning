@@ -9,12 +9,14 @@ This project implements a GPU-accelerated record linkage workflow that loads two
 - Datasets formatted as CSV files containing the attributes referenced in `recordLinkage.py`.
 
 ### Environment setup
+Create the pinned RAPIDS environment with the bundled YAML:
+
 ```bash
-# create an environment matching the exported stack
-conda create -n rapids-rl --file conda_env.txt
+conda env create -f ../rapids-rl.yml
 conda activate rapids-rl
 ```
-If you need a leaner environment, start from `rapidsai` nightly packages that match your CUDA version and add dependencies listed in the spec file (cuDF, cuML, cuGraph, FAISS, CuPy, rapidfuzz, numba, etc.).
+
+This installs CUDA 11.8-compatible builds of cuDF, cuML, FAISS, CuPy, pandas 1.5, pyarrow 11, and the additional Python dependencies (`rapidfuzz`, Optuna, Streamlit, etc.). If you need to customise the stack (different CUDA toolkit or RAPIDS release), start from the compatibility matrix at https://rapids.ai/start.html and adjust the versions in `rapids-rl.yml`.
 
 ## Repository layout
 - `config/pipeline.toml` – single source of truth for datasets, blocking, comparisons, filters, and classifier settings.
