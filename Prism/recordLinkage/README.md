@@ -1,7 +1,7 @@
 # Record Linkage GPU Pipeline
 
 ## Overview
-This project implements a GPU-accelerated record linkage workflow that loads two person-level datasets, blocks records to curtail comparisons, computes similarity vectors, classifies matches with a cuML-based random forest, evaluates metrics, and writes the predicted matches to `out/record_linkage_matches.csv`. The entire pipeline is now configured via `config/pipeline.toml`, so you can drop in your datasets, adjust blocking/comparison/classification settings, and run the linker without diving into the source code. The same workflow is exposed through Prism via `python -m src.main link --dataset <preset>`.
+This project implements a GPU-accelerated record linkage workflow that loads two person-level datasets, blocks records to curtail comparisons, computes similarity vectors, classifies matches with a cuML-based random forest, evaluates metrics, and writes the predicted matches to `out/record_linkage_matches.csv`. The entire pipeline is now configured via `config/pipeline.toml`, so you can drop in your datasets, adjust blocking/comparison/classification settings, and run the linker without diving into the source code. The same workflow is exposed through Prism via `python -m autoML.main link --dataset <preset>`.
 
 ## Prerequisites
 - NVIDIA GPU with a supported CUDA driver (CUDA 12.x as exported in `conda_env.txt`).

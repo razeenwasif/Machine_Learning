@@ -18,9 +18,9 @@ import streamlit as st
 
 from recordLinkage.src import PipelineConfigError, list_available_datasets
 
-from src.data.loaders import UnsupportedFormatError, load_dataset
-from src.linkage import RecordLinkageDependencyError, RecordLinkagePipeline, RecordLinkageResult
-from src.pipeline import AutoMLPipeline, PipelineResult
+from autoML.data.loaders import UnsupportedFormatError, load_dataset
+from autoML.linkage import RecordLinkageDependencyError, RecordLinkagePipeline, RecordLinkageResult
+from autoML.pipeline import AutoMLPipeline, PipelineResult
 
 
 st.set_page_config(page_title="GPU AutoML Dashboard", layout="wide")

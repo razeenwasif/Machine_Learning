@@ -4,4 +4,4 @@ set -euo pipefail
 cmd="$1"
 shift || true
 
-exec "/opt/conda/envs/ml-rl-cuda12/bin/${cmd}" "$@"
+exec "/opt/conda/bin/${cmd}" "$@"

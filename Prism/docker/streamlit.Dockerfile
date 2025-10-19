@@ -1,17 +1,26 @@
 FROM rapidsai/base:25.08-cuda12.9-py3.11
 
-WORKDIR /opt/prism
+SHELL ["/bin/bash", "-c"]
 
-COPY docker/conda-streamlit.yml .
+RUN python -m pip install --upgrade pip \
+    && python -m pip install --no-cache-dir \
+        streamlit==1.34.0 \
+        plotly==5.20.0 \
+        pydeck==0.8.1b0 \
+        optuna==3.6.1 \
+        rich==13.7.1 \
+    && python -m pip install --no-cache-dir \
+        --index-url https://download.pytorch.org/whl/cu121 \
+        --extra-index-url https://pypi.org/simple \
+        torch==2.5.1 \
+    && conda clean -afy \
+    && rm -rf ~/.cache/pip
 
-RUN mamba env create -f conda-streamlit.yml \
-    && conda clean -afy
-
-ENV PATH="/opt/conda/envs/ml-rl-cuda12/bin:/opt/conda/bin:${PATH}"
+ENV PATH="/opt/conda/bin:${PATH}"
 
 WORKDIR /workspace
 
 COPY docker/streamlit-entrypoint.sh /usr/local/bin/streamlit-entrypoint.sh
 
 ENTRYPOINT ["streamlit-entrypoint.sh"]
-CMD ["streamlit", "run", "src/gui/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+CMD ["streamlit", "run", "autoML/gui/app.py", "--server.address=0.0.0.0", "--server.port=8501"]

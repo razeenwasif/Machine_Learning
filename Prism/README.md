@@ -108,7 +108,7 @@ This pins Python 3.10, RAPIDS 23.06 (CUDA 11.8), and matching dependencies. Th
 Run a full AutoML cycle against a dataset:
 
 ```bash
-python -m src.main \
+python -m autoML.main \
   --data datasets/customer_churn.csv \
   --target churned \
   --task auto \
@@ -126,7 +126,7 @@ The CLI prints:
 View all options:
 
 ```bash
-python -m src.main --help
+python -m autoML.main --help
 ```
 
 ## Record Linkage Quick Start
@@ -135,13 +135,13 @@ Prism bundles the GPU entity resolution pipeline from `recordLinkage/`. This mod
 List the available dataset presets defined in the TOML configuration:
 
 ```bash
-python -m src.main link --list-datasets
+python -m autoML.main link --list-datasets
 ```
 
 Run a preset (the default configuration lives at `recordLinkage/config/pipeline.toml`):
 
 ```bash
-python -m src.main link --dataset assignment_datasets
+python -m autoML.main link --dataset assignment_datasets
 ```
 
 Useful flags:
@@ -152,13 +152,13 @@ Useful flags:
 
 The CLI prints dataset shapes, notable data-quality notes, blocking metrics, linkage quality (precision/recall/F1/accuracy), and stage runtimes. Matched pairs are written to the configured CSV.
 
-Prefer a GUI? Open `streamlit run src/gui/app.py` and use the “Record linkage (optional)” panel to execute a preset, preview the fused dataset, download the results, and push the linked records directly into the AutoML workflow. The panel uses the same RAPIDS environment as the CLI, so activate `rapids-rl` before launching Streamlit when you plan to run linkage.
+Prefer a GUI? Open `streamlit run autoML/gui/app.py` and use the “Record linkage (optional)” panel to execute a preset, preview the fused dataset, download the results, and push the linked records directly into the AutoML workflow. The panel uses the same RAPIDS environment as the CLI, so activate `rapids-rl` before launching Streamlit when you plan to run linkage.
 
 ## Streamlit Dashboard
 Launch the interactive UI for dataset uploads, parameter tuning, and charting:
 
 ```bash
-streamlit run src/gui/app.py
+streamlit run autoML/gui/app.py
 ```
 
 Dashboard highlights:
@@ -186,7 +186,7 @@ The conda environment intentionally installs the CPU-only PyTorch wheel to avoid
 ```bash
 docker compose -f docker-compose.streamlit.yml up --build
 ```
-- The compose file builds `docker/streamlit.Dockerfile`, which bootstraps the full `ml-rl-cuda12` conda environment defined in `docker/conda-streamlit.yml` on top of the RAPIDS `rapidsai/base:25.08-cuda12.9-py3.11` image, making record linkage available inside the UI.
+- The compose file builds `docker/streamlit.Dockerfile`, which layers Streamlit and supporting libraries onto the preinstalled `rapids` conda environment that ships with `rapidsai/base:25.08-cuda12.9-py3.11`, keeping the image slim while preserving GPU-enabled record linkage inside the UI.
 - Your repository is bind-mounted into `/workspace`, so edits on the host are reflected live in the container.
 - Streamlit is exposed at [http://localhost:8501](http://localhost:8501). Stop with `Ctrl+C`; remove the container with `docker compose -f docker-compose.streamlit.yml down`.
 
@@ -194,7 +194,7 @@ docker compose -f docker-compose.streamlit.yml up --build
 - `torch.cuda.is_available()` should report `True` inside the container. If not, confirm the driver/toolkit installation and rerun the `docker run … nvidia-smi` sanity check above.
 - Add extra host directories (datasets, artifacts) by appending more `volumes` entries in `docker-compose.streamlit.yml`.
 - Optionally set `PRISM_UID` / `PRISM_GID` to match your host account if you want container writes to preserve ownership (default is root). Example: `export PRISM_UID=$(id -u); export PRISM_GID=$(id -g)`.
-- To update Python dependencies (Streamlit, torch, etc.), edit the pip section inside `docker/conda-streamlit.yml` and rerun `docker compose … up --build`.
+- To update Python dependencies (Streamlit, torch, etc.), adjust the `pip install` commands in `docker/streamlit.Dockerfile` and rerun `docker compose … up --build`.
 - Use a different port by changing `STREAMLIT_SERVER_PORT` and the published port in the compose file.
 - If your Docker Compose release predates GPU reservations, set `runtime: nvidia` (already configured in the compose file). If Compose still refuses to start, fall back to `docker run --rm -it --gpus all …` with the same image/command.
 
@@ -211,7 +211,7 @@ The image bootstraps the RAPIDS stack defined in `docker/conda-recordlinkage.yml
 ```bash
 docker compose -f docker-compose.recordlinkage.yml run --rm \
   recordlinkage \
-  python -m src.main link --dataset assignment_datasets
+  python -m autoML.main link --dataset assignment_datasets
 ```
 - Replace `--dataset assignment_datasets` with any CLI flags you normally pass (`--config`, `--output`, etc.).
 - Results and logs are written back into the bind-mounted repository (see `volumes` in the compose file).
@@ -231,7 +231,7 @@ docker compose -f docker-compose.recordlinkage.yml run --rm \
     -v "$(pwd)":/workspace \
     -w /workspace \
     prism-recordlinkage \
-    python -m src.main link --dataset assignment_datasets
+    python -m autoML.main link --dataset assignment_datasets
   ```
 
 ## Data Requirements & Recommendations
@@ -244,23 +244,23 @@ docker compose -f docker-compose.recordlinkage.yml run --rm \
 ## Pipeline Walkthrough
 Prism follows a deterministic chain of stages:
 
-1. **Load** (`src/data/loaders.py`): File-type detection selects the correct loader, validates existence, and guarantees a non-empty DataFrame.
-2. **Analyse** (`src/analysis/analyzer.py`): Produces missing-value maps, numeric/categorical profiles, correlation pairs, duplicates, and target imbalance notes.
-3. **Clean** (`src/analysis/cleaner.py`): Drops high-missing columns, deduplicates rows, imputes remaining missing values, and clips outliers using the IQR rule.
+1. **Load** (`autoML/data/loaders.py`): File-type detection selects the correct loader, validates existence, and guarantees a non-empty DataFrame.
+2. **Analyse** (`autoML/analysis/analyzer.py`): Produces missing-value maps, numeric/categorical profiles, correlation pairs, duplicates, and target imbalance notes.
+3. **Clean** (`autoML/analysis/cleaner.py`): Drops high-missing columns, deduplicates rows, imputes remaining missing values, and clips outliers using the IQR rule.
 4. **Infer task** (`AutoMLPipeline._infer_task`): Chooses regression, classification, or clustering based on target dtype and cardinality when `--task auto` is used.
 5. **Split data**: Stratified splits for classification; random splits for other tasks with reproducible seeding.
-6. **Preprocess** (`src/utils/preprocessing.py`):
+6. **Preprocess** (`autoML/utils/preprocessing.py`):
    - Numeric columns → median imputation + standard scaling.
    - Categorical columns → most-frequent imputation + one-hot encoding.
    - Targets → ordinal encoding for classification or float tensors for regression.
-7. **Hyperparameter optimisation** (`src/hpo.py`):
+7. **Hyperparameter optimisation** (`autoML/hpo.py`):
    - Candidate models enumerated by `models.model_factory.candidates_for_task`.
    - Optuna samples model-specific search spaces (learning rates, epochs, layer widths, cluster counts).
    - Validation splits evaluate each trial with task-aware metrics.
    - GPU cache is flushed between trials to prevent fragmentation.
 8. **Final training & evaluation**:
    - Best trial configuration is retrained on the full training set.
-   - Metrics (`src/utils/metrics.py`) compute RMSE/MAE/R², accuracy/F1, or silhouette/Calinski-Harabasz.
+   - Metrics (`autoML/utils/metrics.py`) compute RMSE/MAE/R², accuracy/F1, or silhouette/Calinski-Harabasz.
 9. **Reporting**: All artefacts (analysis, cleaning, metrics, config) are assembled into `PipelineResult` for downstream consumption.
 
 ## Configuration Reference
@@ -292,12 +292,12 @@ The CLI/GUI surface information derived from `PipelineResult`:
 When exporting via `--output-json`, the JSON payload mirrors the dataclasses, making it easy to integrate with monitoring, experiment tracking, or dashboards.
 
 ## Extending Prism
-- **New data format**: Register a loader in `src/data/loaders.py` and extend `LOADERS`.
+- **New data format**: Register a loader in `autoML/data/loaders.py` and extend `LOADERS`.
 - **Additional model**:
   1. Subclass `BaseModel` or `SupervisedTorchModel`.
   2. Register it in `models/model_factory.candidates_for_task`.
-  3. Optionally add a search space in `src/hpo.py` via `@register_search_space`.
-- **Custom metrics**: Update `src/utils/metrics.py` or supply alternative metric functions inside `AutoMLPipeline._select_primary_metric`.
+  3. Optionally add a search space in `autoML/hpo.py` via `@register_search_space`.
+- **Custom metrics**: Update `autoML/utils/metrics.py` or supply alternative metric functions inside `AutoMLPipeline._select_primary_metric`.
 - **Augmented cleaning**: Enhance `DataCleaner` strategies or thresholds to match domain requirements.
 
 These extension points keep the pipeline cohesive while allowing task-specific experimentation.
@@ -305,8 +305,8 @@ These extension points keep the pipeline cohesive while allowing task-specific e
 ## Development Workflow
 - Create or activate a virtual environment (see [Installation](#installation)).
 - Format and lint using tools of your choice; the codebase is compatible with `ruff` and `black` defaults.
-- Manual testing: run `python -m src.main --help` to verify CLI wiring, then execute sample datasets to validate end-to-end behaviour.
-- Streamlit development: use `streamlit run src/gui/app.py --server.runOnSave true` for live reload during UI tweaks.
+- Manual testing: run `python -m autoML.main --help` to verify CLI wiring, then execute sample datasets to validate end-to-end behaviour.
+- Streamlit development: use `streamlit run autoML/gui/app.py --server.runOnSave true` for live reload during UI tweaks.
 
 ## Troubleshooting
 - **Dataset not found**: Verify the supplied path resolves on the local filesystem; absolute paths are recommended.
@@ -317,7 +317,7 @@ These extension points keep the pipeline cohesive while allowing task-specific e
 
 ## Project Layout
 ```
-src/
+autoML/
 ├── analysis/              # EDA and cleaning reports
 ├── data/                  # Format-aware dataset loaders
 ├── gui/                   # Streamlit application

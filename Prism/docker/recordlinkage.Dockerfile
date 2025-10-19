@@ -14,4 +14,4 @@ WORKDIR /workspace
 COPY docker/recordlinkage-entrypoint.sh /usr/local/bin/recordlinkage-entrypoint.sh
 
 ENTRYPOINT ["recordlinkage-entrypoint.sh"]
-CMD ["python", "-m", "src.main", "link"]
+CMD ["python", "-m", "autoML.main", "link"]

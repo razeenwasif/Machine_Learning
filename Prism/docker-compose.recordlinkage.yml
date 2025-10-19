@@ -7,7 +7,7 @@ services:
     volumes:
       - .:/workspace
     working_dir: /workspace
-    command: ["python", "-m", "src.main", "link"]
+    command: ["python", "-m", "autoML.main", "link"]
     environment:
       PYTHONUNBUFFERED: "1"
     runtime: nvidia
