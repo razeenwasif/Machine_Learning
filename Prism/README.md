@@ -194,7 +194,7 @@ docker compose -f docker-compose.streamlit.yml up --build
 - `torch.cuda.is_available()` should report `True` inside the container. If not, confirm the driver/toolkit installation and rerun the `docker run … nvidia-smi` sanity check above.
 - Add extra host directories (datasets, artifacts) by appending more `volumes` entries in `docker-compose.streamlit.yml`.
 - Optionally set `PRISM_UID` / `PRISM_GID` to match your host account if you want container writes to preserve ownership (default is root). Example: `export PRISM_UID=$(id -u); export PRISM_GID=$(id -g)`.
-- To update Python dependencies (Streamlit, torch, etc.), adjust the `pip install` commands in `docker/streamlit.Dockerfile` and rerun `docker compose … up --build`.
+- To update Python/GPU dependencies (Streamlit, torch, Faiss, etc.), adjust the `mamba install` / `pip install` commands in `docker/streamlit.Dockerfile` and rerun `docker compose … up --build`.
 - Use a different port by changing `STREAMLIT_SERVER_PORT` and the published port in the compose file.
 - If your Docker Compose release predates GPU reservations, set `runtime: nvidia` (already configured in the compose file). If Compose still refuses to start, fall back to `docker run --rm -it --gpus all …` with the same image/command.
 

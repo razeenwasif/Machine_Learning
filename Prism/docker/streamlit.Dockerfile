@@ -2,7 +2,12 @@ FROM rapidsai/base:25.08-cuda12.9-py3.11
 
 SHELL ["/bin/bash", "-c"]
 
-RUN python -m pip install --upgrade pip \
+RUN mamba install --yes \
+        -c rapidsai \
+        -c conda-forge \
+        -c nvidia \
+        faiss-gpu=1.12.0 \
+    && python -m pip install --upgrade pip \
     && python -m pip install --no-cache-dir \
         streamlit==1.34.0 \
         plotly==5.20.0 \
