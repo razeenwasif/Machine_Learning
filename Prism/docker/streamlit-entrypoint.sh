@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-exec /opt/conda/bin/conda run --no-capture-output -n ml-rl-cuda12 "$@"
+cmd="$1"
+shift
+
+exec "/opt/conda/envs/ml-rl-cuda12/bin/${cmd}" "$@"
