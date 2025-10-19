@@ -3,6 +3,7 @@ FROM rapidsai/base:25.08-cuda12.9-py3.11
 SHELL ["/bin/bash", "-c"]
 
 RUN mamba install --yes \
+        -c pytorch \
         -c rapidsai \
         -c conda-forge \
         -c nvidia \
