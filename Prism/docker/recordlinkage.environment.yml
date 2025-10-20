@@ -27,10 +27,3 @@ dependencies:
   - fastapi
   - uvicorn
 
-  # Testing
-  - pytest
-  - httpx
-
-  # PyTorch for CPU (as it was in the original file)
-  - pip:
-    - torch --index-url https://download.pytorch.org/whl/cpu
