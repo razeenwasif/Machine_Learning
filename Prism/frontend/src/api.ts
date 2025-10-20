@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { PipelineResult, RecordLinkageResult } from './types';
+import type { PipelineResult, RecordLinkageResult } from './types';
 
 const apiClient = (baseURL: string) => {
   return axios.create({
@@ -20,11 +20,7 @@ export interface AutoMLRequest {
 }
 
 export const runAutoML = async (data: AutoMLRequest): Promise<PipelineResult> => {
-  return response.data;
-};
-
-export const getDatasetPreview = async (dataPath: string): Promise<Record<string, any>[]> => {
-  const response = await automlApi.post<Record<string, any>[]>('/preview-dataset', { data_path: dataPath });
+  const response = await automlApi.post<PipelineResult>('/run', data);
   return response.data;
 };
 

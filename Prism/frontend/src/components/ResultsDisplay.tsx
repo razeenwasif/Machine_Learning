@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Paper, Alert } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PipelineResult, RecordLinkageResult } from '../types';
+import type { PipelineResult, RecordLinkageResult } from '../types';
 import MetricsChart from './MetricsChart';
 import RecordLinkageSummary from './RecordLinkageSummary';
 

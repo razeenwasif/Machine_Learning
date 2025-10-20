@@ -16,8 +16,8 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import theme from './theme';
-import { getDatasetPreview, runAutoML, runRecordLinkage, AutoMLRequest, LinkageRequest } from './api';
-import { PipelineResult, RecordLinkageResult } from './types';
+import { getDatasetPreview, runAutoML, runRecordLinkage } from './api';
+import type { AutoMLRequest, LinkageRequest, PipelineResult, RecordLinkageResult } from './api';
 import DataTable from './components/DataTable';
 import ResultsDisplay from './components/ResultsDisplay';
 
@@ -101,7 +101,7 @@ function App() {
       <Box sx={{ flexGrow: 1, p: 2 }}>
         <Grid container spacing={2}>
           {/* Sidebar */}
-          <Grid item xs={12} md={4}>
+          <Grid xs={12} md={4}>
             <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
               <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
                 <Typography variant="h5" gutterBottom>Configuration</Typography>
@@ -198,7 +198,7 @@ function App() {
         </Grid>
 
           {/* Main Content */}
-          <Grid item xs={12} md={8}>
+          <Grid xs={12} md={8}>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }}>
               <Box display="flex" flexDirection="column" gap={2}>
                 {/* Data Preview Section */}

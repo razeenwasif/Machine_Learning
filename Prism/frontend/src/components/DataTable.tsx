@@ -24,7 +24,7 @@ const DataTable: React.FC<Props> = ({ data }) => {
 
   const columns = Object.keys(data[0]);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 
