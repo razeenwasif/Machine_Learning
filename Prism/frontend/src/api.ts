@@ -1,5 +1,7 @@
 import axios from 'axios';
+export type { PipelineResult, RecordLinkageResult } from './types';
 import type { PipelineResult, RecordLinkageResult } from './types';
+
 
 const apiClient = (baseURL: string) => {
   return axios.create({
@@ -18,6 +20,11 @@ export interface AutoMLRequest {
   task: string;
   max_trials: number;
 }
+
+export const getDatasetPreview = async (data_path: string) => {
+  const response = await automlApi.post('/preview-dataset', { data_path });
+  return response.data;
+};
 
 export const runAutoML = async (data: AutoMLRequest): Promise<PipelineResult> => {
   const response = await automlApi.post<PipelineResult>('/run', data);

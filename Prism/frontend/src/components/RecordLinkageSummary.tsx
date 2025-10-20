@@ -42,13 +42,13 @@ const RecordLinkageSummary: React.FC<Props> = ({ result }) => {
         {result.match_count} matches found for dataset key: {result.dataset_key}
       </Typography>
       <Grid container spacing={2} mt={1}>
-        <Grid xs={12} md={4}>
+        <Grid item xs={12} md={4}>
           <MetricTable title="Linkage Quality" data={result.linkage_metrics} />
         </Grid>
-        <Grid xs={12} md={4}>
+        <Grid item xs={12} md={4}>
           <MetricTable title="Blocking Summary" data={result.blocking_metrics} />
         </Grid>
-        <Grid xs={12} md={4}>
+        <Grid item xs={12} md={4}>
           <MetricTable title="Runtime (seconds)" data={result.runtime} />
         </Grid>
       </Grid>

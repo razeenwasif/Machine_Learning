@@ -27,7 +27,7 @@ const MetricsChart: React.FC<Props> = ({ metrics }) => {
   ];
 
   const layout = {
-    title: 'Model Performance Metrics',
+    title: { text: 'Model Performance Metrics' },
     paper_bgcolor: theme.palette.background.paper,
     plot_bgcolor: theme.palette.background.paper,
     font: {

@@ -48,8 +48,8 @@ function App() {
       setPreviewLoading(true);
       setPreviewError(null);
       getDatasetPreview(automlDataPath)
-        .then(data => setPreviewData(data))
-        .catch(error => {
+        .then((data: Record<string, any>[]) => setPreviewData(data))
+        .catch((error: any) => {
           setPreviewData(null);
           setPreviewError(error.response?.data?.detail || error.message || 'Could not load preview.');
         })
@@ -101,7 +101,7 @@ function App() {
       <Box sx={{ flexGrow: 1, p: 2 }}>
         <Grid container spacing={2}>
           {/* Sidebar */}
-          <Grid xs={12} md={4}>
+          <Grid item xs={12} md={4}>
             <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
               <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
                 <Typography variant="h5" gutterBottom>Configuration</Typography>
@@ -198,7 +198,7 @@ function App() {
         </Grid>
 
           {/* Main Content */}
-          <Grid xs={12} md={8}>
+          <Grid item xs={12} md={8}>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }}>
               <Box display="flex" flexDirection="column" gap={2}>
                 {/* Data Preview Section */}
