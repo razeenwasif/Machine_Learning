@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: docker/streamlit.Dockerfile
     ports:
-      - "8501:8501"
+      - "8501:80"
     volumes:
       - .:/workspace
     depends_on:
