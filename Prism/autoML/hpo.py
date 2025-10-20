@@ -94,6 +94,24 @@ def _kmeans_sampler(trial: optuna.trial.Trial, model_key: str, context: Dict) ->
     }
 
 
+@register_search_space("gaussian_mixture")
+def _gaussian_mixture_sampler(trial: optuna.trial.Trial, model_key: str, context: Dict) -> Dict:
+    prefix = f"{model_key}__"
+    n_samples = int(context.get("n_samples", 100))
+    upper_bound = max(2, min(20, n_samples // 5))
+    lower_bound = min(upper_bound, 2)
+    return {
+        "n_components": trial.suggest_int(prefix + "n_components", lower_bound, upper_bound),
+        "covariance_type": trial.suggest_categorical(
+            prefix + "covariance_type",
+            ["full", "tied", "diag", "spherical"],
+        ),
+        "reg_covar": trial.suggest_float(prefix + "reg_covar", 1e-8, 1e-3, log=True),
+        "max_iter": trial.suggest_int(prefix + "max_iter", 100, 500),
+        "init_params": trial.suggest_categorical(prefix + "init_params", ["kmeans", "random"]),
+    }
+
+
 @dataclass
 class HPOResult:
     model_name: str

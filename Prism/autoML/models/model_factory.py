@@ -11,6 +11,7 @@ from .clustering import KMeansClusteringModel
 from .linear_regression import LinearRegressionModel
 from .logistic_regression import LogisticRegressionModel
 from .neural_network import NeuralNetworkModel
+from .gmm import GaussianMixtureClusteringModel
 
 
 Candidate = Tuple[Type[BaseModel], Dict]
@@ -39,6 +40,12 @@ def candidates_for_task(task: str) -> Iterable[Candidate]:
         }
     elif task == "clustering":
         yield KMeansClusteringModel, {"max_iter": 200}
+        yield GaussianMixtureClusteringModel, {
+            "n_components": 4,
+            "covariance_type": "full",
+            "max_iter": 300,
+            "reg_covar": 1e-6,
+        }
     else:
         raise ValueError(f"Unknown task: {task}")
 

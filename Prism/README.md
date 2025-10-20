@@ -29,7 +29,7 @@ Prism blends deterministic data preparation, GPU-first training, and Optuna-powe
 - Comprehensive exploratory data analysis (EDA) reporting, including missingness, distribution summaries, and correlation mining.
 - Conservative automated cleaning: duplicate removal, high-missing column drops, imputation, and outlier clipping.
 - Feature engineering powered by `ColumnTransformer`; consistent numeric scaling and categorical one-hot encoding.
-- GPU-first model zoo (linear/logistic regression, configurable feedforward nets, GPU K-Means) with fallbacks to CPU/MPS.
+- GPU-first model zoo (linear/logistic regression, configurable feedforward nets, GPU K-Means, Gaussian Mixture Models) with fallbacks to CPU/MPS.
 - GPU-accelerated record linkage workflow for entity resolution with configurable blocking, similarity, filtering, and supervised classification stages.
 - Optuna-backed hyperparameter optimisation with per-model search spaces and early stopping.
 - Memory-aware runtime that empties CUDA caches between trials to reduce OOM risk on constrained hardware.
@@ -165,8 +165,13 @@ Dashboard highlights:
 - Upload files or reference filesystem paths.
 - Configure task overrides, test split size, trial budgets, seeds, and determinism.
 - Preview the dataset (first 500 rows) with automatic caching for responsiveness.
+- Select which columns feed the AutoML run—use the multiselect just below the preview to drop IDs or any other fields without altering your source file.
+- Optional feature engineering: enable “Add z-scored copies of numeric columns” to add `<col>_zscore` features on the fly before training.
 - Observe metric bar charts, distribution histograms, target balance, and correlation tables.
 - Inspect the cleaning play-by-play (dropped columns, filled values, outlier treatments).
+- Clustering searches now evaluate both GPU K-Means and Gaussian Mixture Models; Optuna selects whichever yields the strongest silhouette score for your feature selection.
+- Instantly retrain the best clustering model on the full dataset and download the resulting segment assignments as CSV.
+- Explore cluster structure with an interactive scatter plot—choose any pair of numeric features to visualise assignments directly in the dashboard.
 
 ## GPU Streamlit Container
 The conda environment intentionally installs the CPU-only PyTorch wheel to avoid conflicting with RAPIDS' CUDA 12.9 runtime. When you want the Streamlit UI to exercise GPU-enabled PyTorch, use the bundled Docker Compose workflow instead of altering the conda stack.
@@ -194,7 +199,7 @@ docker compose -f docker-compose.streamlit.yml up --build
 - `torch.cuda.is_available()` should report `True` inside the container. If not, confirm the driver/toolkit installation and rerun the `docker run … nvidia-smi` sanity check above.
 - Add extra host directories (datasets, artifacts) by appending more `volumes` entries in `docker-compose.streamlit.yml`.
 - Optionally set `PRISM_UID` / `PRISM_GID` to match your host account if you want container writes to preserve ownership (default is root). Example: `export PRISM_UID=$(id -u); export PRISM_GID=$(id -g)`.
-- To update Python/GPU dependencies (Streamlit, torch, Faiss, etc.), adjust the `mamba install` / `pip install` commands in `docker/streamlit.Dockerfile` and rerun `docker compose … up --build`. The Docker image installs the CUDA 12.4 PyTorch wheel and strips conflicting `libcublas*`/`libcusolver*` stubs from it so RAPIDS continues to load its CUDA 12.9 libraries.
+- To update Python/GPU dependencies (Streamlit, torch, Faiss, etc.), adjust the `mamba install` / `pip install` commands in `docker/streamlit.Dockerfile` and rerun `docker compose … up --build`. The image pins a CUDA 12.x-compatible PyTorch wheel to ensure it works correctly with the RAPIDS libraries in the base image.
 - Use a different port by changing `STREAMLIT_SERVER_PORT` and the published port in the compose file.
 - If your Docker Compose release predates GPU reservations, set `runtime: nvidia` (already configured in the compose file). If Compose still refuses to start, fall back to `docker run --rm -it --gpus all …` with the same image/command.
 

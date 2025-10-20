@@ -74,6 +74,32 @@ def _persist_uploaded_file(upload) -> Path:
     return persisted_path
 
 
+def _persist_filtered_dataset(path: str, columns: list[str], zscore_columns: Optional[list[str]] = None) -> Path:
+    """Store a temporary CSV containing only the requested columns."""
+    bundle = load_dataset(path)
+    frame = bundle.frame
+    missing = [column for column in columns if column not in frame.columns]
+    if missing:
+        raise KeyError(f"Columns not found in dataset: {', '.join(missing)}")
+    filtered = frame[columns].copy()
+
+    if zscore_columns:
+        for column in zscore_columns:
+            if column not in filtered.columns:
+                continue
+            series = pd.to_numeric(filtered[column], errors="coerce")
+            mean = series.mean(skipna=True)
+            std = series.std(skipna=True, ddof=0)
+            if std and std > 0:
+                filtered[f"{column}_zscore"] = (series - mean) / std
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
+        filtered.to_csv(tmp.name, index=False)
+        filtered_path = Path(tmp.name)
+    _chown_if_requested(filtered_path)
+    return filtered_path
+
+
 @st.cache_data(show_spinner=False)
 def _load_preview(path: str) -> pd.DataFrame:
     bundle = load_dataset(path)
@@ -363,6 +389,32 @@ def main() -> None:
         st.session_state["linkage_use_gpu"] = True
     if "linkage_skip_filters" not in st.session_state:
         st.session_state["linkage_skip_filters"] = False
+    if "feature_selection_dataset" not in st.session_state:
+        st.session_state["feature_selection_dataset"] = ""
+    if "feature_selection_target" not in st.session_state:
+        st.session_state["feature_selection_target"] = ""
+    if "selected_feature_columns" not in st.session_state:
+        st.session_state["selected_feature_columns"] = []
+    if "filtered_dataset_path" not in st.session_state:
+        st.session_state["filtered_dataset_path"] = ""
+    if "feature_add_zscore" not in st.session_state:
+        st.session_state["feature_add_zscore"] = False
+    if "best_model_name" not in st.session_state:
+        st.session_state["best_model_name"] = ""
+    if "best_model_config" not in st.session_state:
+        st.session_state["best_model_config"] = {}
+    if "model_data_path" not in st.session_state:
+        st.session_state["model_data_path"] = ""
+    if "cluster_assignments_preview" not in st.session_state:
+        st.session_state["cluster_assignments_preview"] = None
+    if "cluster_assignments_csv" not in st.session_state:
+        st.session_state["cluster_assignments_csv"] = b""
+    if "cluster_assignments_full" not in st.session_state:
+        st.session_state["cluster_assignments_full"] = None
+    if "cluster_plot_x" not in st.session_state:
+        st.session_state["cluster_plot_x"] = ""
+    if "cluster_plot_y" not in st.session_state:
+        st.session_state["cluster_plot_y"] = ""
 
     sidebar = st.sidebar
     sidebar.header("Configuration")
@@ -525,6 +577,40 @@ def main() -> None:
             with preview_container:
                 st.markdown("#### Dataset Preview")
                 st.dataframe(preview_df, use_container_width=True)
+
+            # Allow feature selection for modelling without modifying the source file.
+            columns = preview_df.columns.tolist()
+            auto_target = target_column or ""
+            dataset_changed = st.session_state.get("feature_selection_dataset") != dataset_path
+            target_changed = st.session_state.get("feature_selection_target") != auto_target
+            if dataset_changed or target_changed:
+                default_features = [
+                    column
+                    for column in columns
+                    if column != auto_target and "id" not in column.lower()
+                ]
+                st.session_state["selected_feature_columns"] = default_features or columns
+                st.session_state["feature_selection_dataset"] = dataset_path
+                st.session_state["feature_selection_target"] = auto_target
+                st.session_state["cluster_assignments_preview"] = None
+                st.session_state["cluster_assignments_csv"] = b""
+                st.session_state["cluster_assignments_full"] = None
+                st.session_state["cluster_plot_x"] = ""
+                st.session_state["cluster_plot_y"] = ""
+
+            if columns:
+                st.multiselect(
+                    "Columns to include in modelling",
+                    options=columns,
+                    key="selected_feature_columns",
+                    help="Only the selected columns (plus the target, if specified) will be used by the AutoML run.",
+                )
+                st.checkbox(
+                    "Add z-scored copies of numeric columns",
+                    key="feature_add_zscore",
+                    help="Adds an extra column '<name>_zscore' for each numeric column you selected.",
+                )
+
         except (FileNotFoundError, UnsupportedFormatError) as exc:
             st.error(str(exc))
             st.session_state["preview_df"] = None
@@ -546,14 +632,38 @@ def main() -> None:
                         max_trials=int(max_trials),
                         prefer_gpu=prefer_gpu,
                     )
+                    modelling_path = dataset_path
+                    selected_features: list[str] = st.session_state.get("selected_feature_columns", [])
+                    if selected_features:
+                        keep_columns = selected_features.copy()
+                        if target_column and target_column not in keep_columns:
+                            keep_columns.append(target_column)
+                        if not keep_columns:
+                            raise ValueError("Select at least one column to use for modelling.")
+                        zscore_flag = st.session_state.get("feature_add_zscore", False)
+                        zscore_columns = selected_features if zscore_flag else None
+                        filtered_path = _persist_filtered_dataset(dataset_path, keep_columns, zscore_columns)
+                        modelling_path = str(filtered_path)
+                        st.session_state["filtered_dataset_path"] = modelling_path
+                    else:
+                        st.session_state["filtered_dataset_path"] = ""
+
                     result = pipeline.run(
-                        data_path=dataset_path,
+                        data_path=modelling_path,
                         target=target_column or None,
                         task=task,
                         test_size=float(test_size),
                         max_trials=int(max_trials),
                     )
                     st.session_state["pipeline_result"] = result
+                    st.session_state["best_model_name"] = result.model_name
+                    st.session_state["best_model_config"] = result.best_config
+                    st.session_state["model_data_path"] = modelling_path
+                    st.session_state["cluster_assignments_preview"] = None
+                    st.session_state["cluster_assignments_csv"] = b""
+                    st.session_state["cluster_assignments_full"] = None
+                    st.session_state["cluster_plot_x"] = ""
+                    st.session_state["cluster_plot_y"] = ""
                     st.success(f"Best model: {result.model_name}")
                 except Exception as exc:  # noqa: BLE001 - surface any pipeline issues
                     st.session_state["pipeline_result"] = None
@@ -567,6 +677,96 @@ def main() -> None:
         _render_analysis(result, st.session_state.get("preview_df"))
         st.divider()
         _render_cleaning(result)
+        if result.task == "clustering":
+            st.subheader("Cluster Assignments")
+            if st.button("Generate cluster assignments", use_container_width=True):
+                best_model_name = st.session_state.get("best_model_name")
+                best_model_config = st.session_state.get("best_model_config")
+                data_path_for_model = (
+                    st.session_state.get("filtered_dataset_path") or st.session_state.get("model_data_path") or dataset_path
+                )
+                if not best_model_name or not best_model_config:
+                    st.warning("Best model configuration unavailable. Re-run the pipeline first.")
+                elif not data_path_for_model:
+                    st.warning("Dataset path unavailable. Re-run the pipeline first.")
+                else:
+                    with st.spinner("Training best clustering model on the full dataset..."):
+                        try:
+                            assignment_pipeline = AutoMLPipeline(
+                                seed=int(seed),
+                                deterministic=deterministic,
+                                max_trials=1,
+                                prefer_gpu=prefer_gpu,
+                            )
+                            assignments = assignment_pipeline.assign_clusters(
+                                data_path=data_path_for_model,
+                                model_name=best_model_name,
+                                config=best_model_config,
+                                target=target_column or None,
+                            )
+                            numeric_cols = assignments.select_dtypes(include="number").columns.tolist()
+                            feature_numeric_cols = [col for col in numeric_cols if col != "cluster"]
+                            if feature_numeric_cols:
+                                st.session_state["cluster_plot_x"] = feature_numeric_cols[0]
+                                if len(feature_numeric_cols) > 1:
+                                    st.session_state["cluster_plot_y"] = feature_numeric_cols[1]
+                                else:
+                                    st.session_state["cluster_plot_y"] = feature_numeric_cols[0]
+                            else:
+                                st.session_state["cluster_plot_x"] = ""
+                                st.session_state["cluster_plot_y"] = ""
+                            st.session_state["cluster_assignments_preview"] = assignments.head(200)
+                            st.session_state["cluster_assignments_csv"] = assignments.to_csv(index=False).encode("utf-8")
+                            st.session_state["cluster_assignments_full"] = assignments
+                            st.success("Cluster assignments generated.")
+                        except Exception as exc:  # noqa: BLE001
+                            st.error(f"Failed to generate assignments: {exc}")
+            preview_assignments = st.session_state.get("cluster_assignments_preview")
+            csv_assignments = st.session_state.get("cluster_assignments_csv")
+            full_assignments = st.session_state.get("cluster_assignments_full")
+            if preview_assignments is not None and not preview_assignments.empty and csv_assignments:
+                st.dataframe(preview_assignments, use_container_width=True)
+                st.download_button(
+                    "Download cluster assignments",
+                    data=csv_assignments,
+                    file_name="cluster_assignments.csv",
+                    mime="text/csv",
+                )
+                if isinstance(full_assignments, pd.DataFrame):
+                    numeric_cols = full_assignments.select_dtypes(include="number").columns.tolist()
+                    feature_numeric_cols = [col for col in numeric_cols if col != "cluster"]
+                    if len(feature_numeric_cols) >= 2:
+                        if st.session_state.get("cluster_plot_x") not in feature_numeric_cols:
+                            st.session_state["cluster_plot_x"] = feature_numeric_cols[0]
+                        if st.session_state.get("cluster_plot_y") not in feature_numeric_cols:
+                            st.session_state["cluster_plot_y"] = feature_numeric_cols[1]
+                        with st.expander("Visualise clusters", expanded=True):
+                            col_x, col_y = st.columns(2)
+                            x_axis = col_x.selectbox(
+                                "X-axis",
+                                options=feature_numeric_cols,
+                                key="cluster_plot_x",
+                            )
+                            y_axis = col_y.selectbox(
+                                "Y-axis",
+                                options=feature_numeric_cols,
+                                key="cluster_plot_y",
+                            )
+                            if x_axis == y_axis:
+                                st.info("Select two different features to plot clusters.")
+                            else:
+                                scatter_fig = px.scatter(
+                                    full_assignments,
+                                    x=x_axis,
+                                    y=y_axis,
+                                    color="cluster",
+                                    title="Cluster assignment scatter plot",
+                                    hover_data=[col for col in full_assignments.columns if col not in {"cluster"}],
+                                )
+                                scatter_fig.update_traces(marker=dict(size=9, opacity=0.8))
+                                st.plotly_chart(scatter_fig, use_container_width=True)
+                    else:
+                        st.info("Not enough numeric features to create a cluster scatter plot.")
 
 
 if __name__ == "__main__":

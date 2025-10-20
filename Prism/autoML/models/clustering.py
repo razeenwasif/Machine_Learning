@@ -38,7 +38,7 @@ class KMeansClusteringModel(BaseModel):
         # Init centroids via k-means++
         indices = [torch.randint(0, n_samples, (1,), device=self.device)]
         for _ in range(1, n_clusters):
-            current_centroids = X[indices]
+            current_centroids = X[torch.cat(indices)]
             distances = torch.cdist(X, current_centroids, p=2) ** 2
             min_dist, _ = torch.min(distances, dim=1)
             probs = min_dist / torch.sum(min_dist)

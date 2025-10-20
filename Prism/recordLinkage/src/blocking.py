@@ -417,7 +417,7 @@ def canopy_clustering(gdf, blk_attr_list, T1, T2):
             next_progress += progress_step
 
         center_index = random.choice(list(unassigned_rec_indices))
-        center_vector = np.array([vectors_np[center_index, :]], dtype='float32')
+        center_vector = vectors_np[center_index, :].reshape(1, -1).astype('float32')
 
         # Use knn search and filter by radius to simulate range search
         # Set k to a reasonably large number. Cap at 2048.

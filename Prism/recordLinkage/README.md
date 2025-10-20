@@ -12,11 +12,11 @@ This project implements a GPU-accelerated record linkage workflow that loads two
 Create the pinned RAPIDS environment with the bundled YAML:
 
 ```bash
-conda env create -f ../rapids-rl.yml
-conda activate rapids-rl
+conda env create -f ../ml-rl-cuda12.yml
+conda activate ml-rl-cuda12
 ```
 
-This installs CUDA 11.8-compatible builds of cuDF, cuML, FAISS, CuPy, pandas 1.5, pyarrow 11, and the additional Python dependencies (`rapidfuzz`, Optuna, Streamlit, etc.). If you need to customise the stack (different CUDA toolkit or RAPIDS release), start from the compatibility matrix at https://rapids.ai/start.html and adjust the versions in `rapids-rl.yml`.
+This installs a CUDA 12.x-compatible RAPIDS stack, including cuDF, cuML, FAISS, and other dependencies. If you need to customise the stack, start from the compatibility matrix at https://rapids.ai/start.html and adjust the versions in `ml-rl-cuda12.yml`.
 
 ## Repository layout
 - `config/pipeline.toml` – single source of truth for datasets, blocking, comparisons, filters, and classifier settings.

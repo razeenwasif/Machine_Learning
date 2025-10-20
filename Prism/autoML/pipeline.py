@@ -322,3 +322,42 @@ class AutoMLPipeline:
             },
             indent=2,
         )
+
+    def assign_clusters(
+        self,
+        data_path: str,
+        model_name: str,
+        config: Dict,
+        target: Optional[str] = None,
+    ) -> pd.DataFrame:
+        """Train the supplied clustering config on the full dataset and return assignments."""
+        dataset = load_dataset(data_path, target)
+
+        analyzer = DataAnalyzer()
+        analysis_report = analyzer.analyze(dataset.frame, target)
+
+        cleaner = DataCleaner()
+        cleaned_frame, _ = cleaner.clean(dataset.frame, analysis_report)
+
+        preprocessor = Preprocessor(target_column=target, task_type="clustering")
+        features_tensor, _ = preprocessor.fit_transform(cleaned_frame)
+
+        model_cls = None
+        for candidate_cls, _ in candidates_for_task("clustering"):
+            if candidate_cls.name == model_name:
+                model_cls = candidate_cls
+                break
+        if model_cls is None:
+            raise RuntimeError(f"Unable to locate model class for {model_name}")
+
+        model = instantiate_model(model_cls, self.device_config.device, config)
+        try:
+            model.fit(features_tensor, None)
+            labels = model.predict(features_tensor).numpy()
+        finally:
+            model.cleanup()
+            release_gpu_cache()
+
+        assignments = cleaned_frame.copy()
+        assignments["cluster"] = labels
+        return assignments
