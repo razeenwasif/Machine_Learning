@@ -14,9 +14,12 @@ import {
   MenuItem,
   Slider,
 } from '@mui/material';
+import { motion } from 'framer-motion';
 import theme from './theme';
-import { runAutoML, runRecordLinkage, AutoMLRequest, LinkageRequest } from './api';
+import { getDatasetPreview, runAutoML, runRecordLinkage, AutoMLRequest, LinkageRequest } from './api';
 import { PipelineResult, RecordLinkageResult } from './types';
+import DataTable from './components/DataTable';
+import ResultsDisplay from './components/ResultsDisplay';
 
 function App() {
   // State for AutoML
@@ -34,6 +37,25 @@ function App() {
   const [rlResult, setRlResult] = useState<RecordLinkageResult | null>(null);
   const [rlLoading, setRlLoading] = useState(false);
   const [rlError, setRlError] = useState<string | null>(null);
+
+  // State for Data Preview
+  const [previewData, setPreviewData] = useState<Record<string, any>[] | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (automlDataPath) {
+      setPreviewLoading(true);
+      setPreviewError(null);
+      getDatasetPreview(automlDataPath)
+        .then(data => setPreviewData(data))
+        .catch(error => {
+          setPreviewData(null);
+          setPreviewError(error.response?.data?.detail || error.message || 'Could not load preview.');
+        })
+        .finally(() => setPreviewLoading(false));
+    }
+  }, [automlDataPath]);
 
   const handleRunAutoML = async () => {
     setAutomlLoading(true);
@@ -80,12 +102,13 @@ function App() {
         <Grid container spacing={2}>
           {/* Sidebar */}
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
-              <Typography variant="h5" gutterBottom>Configuration</Typography>
+            <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+              <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
+                <Typography variant="h5" gutterBottom>Configuration</Typography>
 
-              {/* AutoML Section */}
-              <Box mb={4}>
-                <Typography variant="h6">AutoML Pipeline</Typography>
+                {/* AutoML Section */}
+                <Box mb={4}>
+                  <Typography variant="h6">AutoML Pipeline</Typography>
                 <TextField
                   label="Dataset Path"
                   variant="outlined"
@@ -171,19 +194,33 @@ function App() {
                 </Button>
               </Box>
             </Paper>
-          </Grid>
+          </motion.div>
+        </Grid>
 
           {/* Main Content */}
           <Grid item xs={12} md={8}>
-            <ResultsDisplay
-              automlResult={automlResult}
-              rlResult={rlResult}
-              automlError={automlError}
-              rlError={rlError}
-              automlLoading={automlLoading}
-              rlLoading={rlLoading}
-            />
-          </Grid>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }}>
+              <Box display="flex" flexDirection="column" gap={2}>
+                {/* Data Preview Section */}
+                <Paper elevation={3} sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>Dataset Preview</Typography>
+                {previewLoading && <CircularProgress />}
+                {previewError && <Alert severity="error">{previewError}</Alert>}
+                {previewData && <DataTable data={previewData} />}
+              </Paper>
+
+              {/* Results Section */}
+              <ResultsDisplay
+                automlResult={automlResult}
+                rlResult={rlResult}
+                automlError={automlError}
+                rlError={rlError}
+                automlLoading={automlLoading}
+                rlLoading={rlLoading}
+              />
+            </Box>
+          </motion.div>
+        </Grid>
         </Grid>
       </Box>
     </ThemeProvider>

@@ -155,24 +155,19 @@ The CLI prints dataset shapes, notable data-quality notes, blocking metrics, lin
 
 Prefer a GUI? Open `streamlit run autoML/gui/app.py` and use the “Record linkage (optional)” panel to execute a preset, preview the fused dataset, download the results, and push the linked records directly into the AutoML workflow. The panel uses the same RAPIDS environment as the CLI, so activate `rapids-rl` before launching Streamlit when you plan to run linkage.
 
-## Streamlit Dashboard
-Launch the interactive UI for dataset uploads, parameter tuning, and charting:
+## Web Dashboard (React Frontend)
 
-```bash
-streamlit run autoML/gui/app.py
-```
+The project features a modern, single-page web application for interactive execution and visualization.
 
-Dashboard highlights:
-- Upload files or reference filesystem paths.
-- Configure task overrides, test split size, trial budgets, seeds, and determinism.
-- Preview the dataset (first 500 rows) with automatic caching for responsiveness.
-- Select which columns feed the AutoML run—use the multiselect just below the preview to drop IDs or any other fields without altering your source file.
-- Optional feature engineering: enable “Add z-scored copies of numeric columns” to add `<col>_zscore` features on the fly before training.
-- Observe metric bar charts, distribution histograms, target balance, and correlation tables.
-- Inspect the cleaning play-by-play (dropped columns, filled values, outlier treatments).
-- Clustering searches now evaluate both GPU K-Means and Gaussian Mixture Models; Optuna selects whichever yields the strongest silhouette score for your feature selection.
-- Instantly retrain the best clustering model on the full dataset and download the resulting segment assignments as CSV.
-- Explore cluster structure with an interactive scatter plot—choose any pair of numeric features to visualise assignments directly in the dashboard.
+**Frontend Technology Stack:**
+- **React:** For building the user interface.
+- **TypeScript:** For type safety and improved developer experience.
+- **Material-UI (MUI):** Provides a stunning, pre-built library of UI components.
+- **Framer Motion:** Used for fluid and subtle animations.
+- **Vite:** Powers the fast and modern frontend development environment.
+
+**Launching the UI:**
+The recommended way to run the full application stack, including the web dashboard, is via the microservices deployment. See the **[Microservices Deployment](#microservices-deployment)** section for details.
 
 ## Microservices Deployment
 
@@ -331,10 +326,32 @@ When exporting via `--output-json`, the JSON payload mirrors the dataclasses, ma
 These extension points keep the pipeline cohesive while allowing task-specific experimentation.
 
 ## Development Workflow
+
+### Backend
 - Create or activate a virtual environment (see [Installation](#installation)).
 - Format and lint using tools of your choice; the codebase is compatible with `ruff` and `black` defaults.
 - Manual testing: run `python -m autoML.main --help` to verify CLI wiring, then execute sample datasets to validate end-to-end behaviour.
-- Streamlit development: use `streamlit run autoML/gui/app.py --server.runOnSave true` for live reload during UI tweaks.
+
+### Frontend
+The frontend is a Vite-powered React application located in the `frontend/` directory.
+
+1. **Navigate to the frontend directory:**
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   The UI will be available at `http://localhost:5173` (or the next available port) with hot-reloading enabled.
+
+   **Note:** The development server connects to the backend APIs defined in `frontend/.env`. By default, it points to `localhost:8000` and `localhost:8001`, so you will need to have the backend services running (e.g., via Docker) for the UI to be fully functional.
 
 ## Testing and CI/CD
 

@@ -14,9 +14,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from autoML.data.loaders import load_dataset
 from autoML.pipeline import AutoMLPipeline, PipelineResult
 
 app = FastAPI()
+
+
+class PreviewRequest(BaseModel):
+    """Request model for the dataset preview endpoint."""
+    data_path: str = Field(..., description="Path to the dataset file.")
 
 
 class AutoMLRequest(BaseModel):
@@ -30,6 +36,20 @@ class AutoMLRequest(BaseModel):
     seed: int = Field(42, description="Global random seed.")
     deterministic: bool = Field(False, description="Enforce deterministic CUDA kernels.")
     prefer_gpu: bool = Field(True, description="Prefer GPU execution when available.")
+
+
+@app.post("/preview-dataset")
+def preview_dataset(request: PreviewRequest):
+    """
+    Load the first 100 rows of a dataset and return it as JSON.
+    """
+    try:
+        df = load_dataset(request.data_path).frame
+        return df.head(100).to_dict(orient='records')
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Dataset not found at path: {request.data_path}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load dataset preview: {e}")
 
 
 @app.post("/run", response_model=PipelineResult)

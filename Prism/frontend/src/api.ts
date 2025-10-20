@@ -20,7 +20,11 @@ export interface AutoMLRequest {
 }
 
 export const runAutoML = async (data: AutoMLRequest): Promise<PipelineResult> => {
-  const response = await automlApi.post<PipelineResult>('/run', data);
+  return response.data;
+};
+
+export const getDatasetPreview = async (dataPath: string): Promise<Record<string, any>[]> => {
+  const response = await automlApi.post<Record<string, any>[]>('/preview-dataset', { data_path: dataPath });
   return response.data;
 };
 

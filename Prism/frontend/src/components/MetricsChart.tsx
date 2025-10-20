@@ -15,6 +15,13 @@ const MetricsChart: React.FC<Props> = ({ metrics }) => {
       type: 'bar' as const,
       marker: {
         color: theme.palette.primary.main,
+        gradient: {
+          type: 'vertical',
+          color: [
+            theme.palette.primary.light,
+            theme.palette.primary.dark,
+          ]
+        }
       },
     },
   ];
