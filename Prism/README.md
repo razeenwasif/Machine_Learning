@@ -29,7 +29,7 @@ Prism blends deterministic data preparation, GPU-first training, and Optuna-powe
 - Comprehensive exploratory data analysis (EDA) reporting, including missingness, distribution summaries, and correlation mining.
 - Conservative automated cleaning: duplicate removal, high-missing column drops, imputation, and outlier clipping.
 - Feature engineering powered by `ColumnTransformer`; consistent numeric scaling and categorical one-hot encoding.
-- GPU-first model zoo (linear/logistic regression, configurable feedforward nets, GPU K-Means, Gaussian Mixture Models) with fallbacks to CPU/MPS.
+- GPU-first model zoo (linear/logistic regression, configurable feedforward nets, GPU XGBoost, GPU K-Means, Gaussian Mixture Models) with fallbacks to CPU/MPS.
 - GPU-accelerated record linkage workflow for entity resolution with configurable blocking, similarity, filtering, and supervised classification stages.
 - Optuna-backed hyperparameter optimisation with per-model search spaces and early stopping.
 - Memory-aware runtime that empties CUDA caches between trials to reduce OOM risk on constrained hardware.
@@ -79,6 +79,7 @@ Prism is powered by the following ecosystem:
 | `rich` | Rich-text tables and logging for the CLI experience. |
 | `streamlit` | Web dashboard for interactive execution and visualisation. |
 | `plotly` | Dashboard charts for metrics, distributions, and missing data. |
+| `xgboost` | GPU-accelerated gradient-boosted trees for regression/classification. |
 
 ## Installation
 Prism targets Python 3.10+ and optionally leverages NVIDIA GPUs when available.
@@ -173,7 +174,29 @@ Dashboard highlights:
 - Instantly retrain the best clustering model on the full dataset and download the resulting segment assignments as CSV.
 - Explore cluster structure with an interactive scatter plot—choose any pair of numeric features to visualise assignments directly in the dashboard.
 
-## GPU Streamlit Container
+## Microservices Deployment
+
+For a robust, unified experience, Prism can be deployed as a set of three communicating services orchestrated by Docker Compose. This is the recommended approach for using the Streamlit UI, as it isolates the incompatible RAPIDS and standard Python environments.
+
+**Architecture:**
+- `frontend`: A lightweight Streamlit container that serves the user interface.
+- `backend-rl`: A FastAPI service running the full RAPIDS stack to handle GPU-accelerated record linkage tasks.
+- `backend-automl`: A FastAPI service running a standard Python environment to handle the AutoML pipeline tasks.
+
+**Build & Launch the Full Stack**
+```bash
+docker compose -f docker-compose.microservices.yml up --build
+```
+- This command builds and starts all three services.
+- The Streamlit UI is available at `http://localhost:8501`.
+- The record linkage API is available at `http://localhost:8000`.
+- The AutoML API is available at `http://localhost:8001`.
+- All code is volume-mounted, so changes on the host are reflected in the containers.
+
+## Standalone Containers (Legacy)
+
+The following sections describe how to run the Streamlit UI or the record linkage CLI in a single, monolithic container. This approach is simpler but less flexible than the microservices deployment.
+
 The conda environment intentionally installs the CPU-only PyTorch wheel to avoid conflicting with RAPIDS' CUDA 12.9 runtime. When you want the Streamlit UI to exercise GPU-enabled PyTorch, use the bundled Docker Compose workflow instead of altering the conda stack.
 
 **Prerequisites**

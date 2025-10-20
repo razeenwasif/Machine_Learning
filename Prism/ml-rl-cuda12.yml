@@ -323,6 +323,8 @@ dependencies:
   - pip=25.2=pyh8b19718_0
   - pip:
     - --extra-index-url https://download.pytorch.org/whl/cpu
+    - fastapi>=0.100
+    - uvicorn>=0.20
     - plotly==5.20.0
     - pydeck==0.8.1b0
     - streamlit==1.34.0

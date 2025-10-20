@@ -63,10 +63,22 @@ class Preprocessor:
 
         return ColumnTransformer(transformers=transformers)
 
+    @staticmethod
+    def _ensure_float_array(array: Any) -> np.ndarray:
+        """Coerce transformed features to float32 to avoid object dtypes."""
+        try:
+            return np.asarray(array, dtype=np.float32)
+        except ValueError as exc:
+            raise ValueError(
+                "Unable to convert preprocessed features to numeric values. "
+                "Ensure all selected feature columns are numeric or can be one-hot encoded."
+            ) from exc
+
     def fit_transform(self, df: pd.DataFrame) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         X_df, y_series = self._split_features_target(df)
         self.transformer = self._build_transformer(X_df)
         X_np = self.transformer.fit_transform(X_df)
+        X_np = self._ensure_float_array(X_np)
 
         # Track generated feature names for logging/debugging
         feature_names = []
@@ -89,6 +101,7 @@ class Preprocessor:
             raise RuntimeError("Preprocessor must be fitted before calling transform().")
         X_df, y_series = self._split_features_target(df)
         X_np = self.transformer.transform(X_df)
+        X_np = self._ensure_float_array(X_np)
         X_tensor = torch.tensor(X_np, dtype=torch.float32)
         y_tensor = None
         if y_series is not None:

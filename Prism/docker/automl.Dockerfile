@@ -1,4 +1,4 @@
-# Dockerfile for the Streamlit frontend service
+# Dockerfile for the AutoML backend service
 FROM python:3.11-slim
 
 WORKDIR /workspace
@@ -10,6 +10,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire project
 COPY . .
 
-# Expose port and run the app
-EXPOSE 8501
-CMD ["streamlit", "run", "autoML/gui/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+# Expose port and run the API
+EXPOSE 8001
+CMD ["uvicorn", "autoML.api:app", "--host", "0.0.0.0", "--port", "8001"]

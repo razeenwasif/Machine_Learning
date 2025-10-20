@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/streamlit.Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/workspace
+    depends_on:
+      - backend-rl
+      - backend-automl
+    networks:
+      - prism-net
+
+  backend-rl:
+    build:
+      context: .
+      dockerfile: docker/recordlinkage.api.Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/workspace
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    networks:
+      - prism-net
+
+  backend-automl:
+    build:
+      context: .
+      dockerfile: docker/automl.Dockerfile
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/workspace
+    networks:
+      - prism-net
+
+networks:
+  prism-net:
+    driver: bridge

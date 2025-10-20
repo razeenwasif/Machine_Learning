@@ -112,6 +112,40 @@ def _gaussian_mixture_sampler(trial: optuna.trial.Trial, model_key: str, context
     }
 
 
+@register_search_space("xgboost_regressor")
+def _xgboost_regressor_sampler(trial: optuna.trial.Trial, model_key: str, context: Dict) -> Dict:
+    prefix = f"{model_key}__"
+    return {
+        "eta": trial.suggest_float(prefix + "eta", 0.01, 0.3, log=True),
+        "max_depth": trial.suggest_int(prefix + "max_depth", 3, 12),
+        "subsample": trial.suggest_float(prefix + "subsample", 0.5, 1.0),
+        "colsample_bytree": trial.suggest_float(prefix + "colsample_bytree", 0.5, 1.0),
+        "min_child_weight": trial.suggest_float(prefix + "min_child_weight", 1e-2, 10.0, log=True),
+        "gamma": trial.suggest_float(prefix + "gamma", 0.0, 5.0),
+        "lambda": trial.suggest_float(prefix + "lambda", 1e-3, 10.0, log=True),
+        "alpha": trial.suggest_float(prefix + "alpha", 1e-3, 5.0, log=True),
+        "num_boost_round": trial.suggest_int(prefix + "num_boost_round", 150, 800),
+        "early_stopping_rounds": trial.suggest_int(prefix + "early_stopping_rounds", 20, 80),
+    }
+
+
+@register_search_space("xgboost_classifier")
+def _xgboost_classifier_sampler(trial: optuna.trial.Trial, model_key: str, context: Dict) -> Dict:
+    prefix = f"{model_key}__"
+    return {
+        "eta": trial.suggest_float(prefix + "eta", 0.01, 0.3, log=True),
+        "max_depth": trial.suggest_int(prefix + "max_depth", 3, 12),
+        "subsample": trial.suggest_float(prefix + "subsample", 0.5, 1.0),
+        "colsample_bytree": trial.suggest_float(prefix + "colsample_bytree", 0.5, 1.0),
+        "min_child_weight": trial.suggest_float(prefix + "min_child_weight", 1e-2, 10.0, log=True),
+        "gamma": trial.suggest_float(prefix + "gamma", 0.0, 5.0),
+        "lambda": trial.suggest_float(prefix + "lambda", 1e-3, 10.0, log=True),
+        "alpha": trial.suggest_float(prefix + "alpha", 1e-3, 5.0, log=True),
+        "num_boost_round": trial.suggest_int(prefix + "num_boost_round", 150, 800),
+        "early_stopping_rounds": trial.suggest_int(prefix + "early_stopping_rounds", 20, 80),
+    }
+
+
 @dataclass
 class HPOResult:
     model_name: str
