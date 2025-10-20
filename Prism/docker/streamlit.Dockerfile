@@ -1,15 +1,29 @@
-# Dockerfile for the Streamlit frontend service
-FROM python:3.11-slim
+# Stage 1: Build the React application
+FROM node:18-alpine AS build-stage
 
-WORKDIR /workspace
+WORKDIR /app
 
-# Copy requirements and install dependencies
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy package files and install dependencies
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm install
 
-# Copy the entire project
-COPY . .
+# Copy the rest of the frontend source code
+COPY frontend/ ./
 
-# Expose port and run the app
-EXPOSE 8501
-CMD ["streamlit", "run", "autoML/gui/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+# Build the application for production
+RUN npm run build
+
+# Stage 2: Serve the static files with Nginx
+FROM nginx:stable-alpine AS production-stage
+
+# Copy the built assets from the build stage
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+
+# Copy the custom Nginx configuration
+COPY --from=build-stage /app/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# The default nginx command will start the server
+CMD ["nginx", "-g", "daemon off;"]
