@@ -91,13 +91,23 @@ def main() -> None:
     st.title("Prism Dashboard")
     st.caption("Microservices Edition: UI Frontend")
 
-    # Initialize session state
+    # Initialize session state comprehensively
     if "pipeline_result" not in st.session_state:
         st.session_state["pipeline_result"] = None
-    if "linkage_result" not in st.session_state:
-        st.session_state["linkage_result"] = None
     if "data_source_choice" not in st.session_state:
         st.session_state["data_source_choice"] = "Path"
+    if "dataset_path_input" not in st.session_state:
+        st.session_state["dataset_path_input"] = ""
+    if "uploaded_dataset_path" not in st.session_state:
+        st.session_state["uploaded_dataset_path"] = ""
+    if "target_column_input" not in st.session_state:
+        st.session_state["target_column_input"] = ""
+    if "linkage_result" not in st.session_state:
+        st.session_state["linkage_result"] = None
+    if "linkage_config_path" not in st.session_state:
+        st.session_state["linkage_config_path"] = "recordLinkage/config/pipeline.toml"
+    if "linkage_dataset_key_input" not in st.session_state:
+        st.session_state["linkage_dataset_key_input"] = ""
 
     sidebar = st.sidebar
     sidebar.header("Configuration")

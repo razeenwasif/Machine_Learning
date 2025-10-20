@@ -336,6 +336,35 @@ These extension points keep the pipeline cohesive while allowing task-specific e
 - Manual testing: run `python -m autoML.main --help` to verify CLI wiring, then execute sample datasets to validate end-to-end behaviour.
 - Streamlit development: use `streamlit run autoML/gui/app.py --server.runOnSave true` for live reload during UI tweaks.
 
+## Testing and CI/CD
+
+The project is equipped with a testing suite and a continuous integration pipeline to ensure code quality and stability.
+
+### Testing Framework
+- We use **pytest** as the primary framework for writing and running unit and integration tests.
+- **httpx** is used within the `TestClient` to send requests to the backend APIs during tests.
+
+### Running Tests Locally
+Tests are located in the `tests/` directory. To run them, first ensure you have the development dependencies installed:
+
+```bash
+pip install -r requirements.txt
+```
+
+Then, run the test suite from the project root:
+
+```bash
+pytest
+```
+
+### Continuous Integration
+A GitHub Actions workflow is defined in `.github/workflows/ci.yml`. This pipeline automatically triggers on every `push` and `pull_request` to the `main` branch. It will:
+1. Set up a Python environment.
+2. Install all necessary dependencies.
+3. Run the full `pytest` suite.
+
+This ensures that all changes are automatically validated, preventing regressions and maintaining a high standard of code quality.
+
 ## Troubleshooting
 - **Dataset not found**: Verify the supplied path resolves on the local filesystem; absolute paths are recommended.
 - **Unsupported file extension**: Convert data to CSV/Parquet/JSONL or register a new loader.

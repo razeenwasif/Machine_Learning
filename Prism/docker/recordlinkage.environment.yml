@@ -1,0 +1,36 @@
+name: base
+channels:
+  - rapidsai
+  - conda-forge
+  - pytorch
+  - nvidia
+  - defaults
+
+dependencies:
+  # Core RAPIDS stack
+  - python=3.11
+  - cudf=25.08
+  - cuml=25.08
+  - cupy>=12.0.0
+  - cugraph=25.08
+  - faiss-gpu
+  - rapids-dask-dependency=25.08
+
+  # Application-specific
+  - rapidfuzz
+  - python-confluent-kafka
+  - pyarrow>=14.0.0
+  - optuna
+  - rich
+
+  # API server
+  - fastapi
+  - uvicorn
+
+  # Testing
+  - pytest
+  - httpx
+
+  # PyTorch for CPU (as it was in the original file)
+  - pip:
+    - torch --index-url https://download.pytorch.org/whl/cpu

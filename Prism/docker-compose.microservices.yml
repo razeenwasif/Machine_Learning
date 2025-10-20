@@ -37,6 +37,9 @@ services:
       - "8001:8001"
     volumes:
       - .:/workspace
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
     networks:
       - prism-net
 

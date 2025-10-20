@@ -4,10 +4,10 @@ FROM rapidsai/base:25.08-cuda12.9-py3.11
 WORKDIR /workspace
 
 # Copy the conda environment file and update the environment
-COPY ml-rl-cuda12.yml ml-rl-cuda12.yml
+COPY docker/recordlinkage.environment.yml recordlinkage.environment.yml
 
 # Update the environment with mamba
-RUN mamba env update -n base -f ml-rl-cuda12.yml && \
+RUN mamba env update -n base -f recordlinkage.environment.yml && \
     conda clean -afy && \
     rm -rf /opt/conda/pkgs/*
 

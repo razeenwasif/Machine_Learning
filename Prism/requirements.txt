@@ -7,9 +7,12 @@ pyarrow>=12.0
 rich>=13.7
 streamlit>=1.34
 plotly>=5.20
+xgboost>=1.6
 fastapi>=0.100
 uvicorn>=0.20
 requests>=2.30
+pytest>=7.0
+httpx>=0.25
 
 # Record linkage GPU dependencies should be installed via Conda (see recordLinkage/README.md):
 # cudf, cuml, cupy, faiss-gpu, numba, rapidfuzz
