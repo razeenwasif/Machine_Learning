@@ -1,0 +1,14 @@
+# Environments
+**/python_env/
+**/jupyter_env/
+**/pytorch_env/
+
+# Python cache
+**/__pycache__/
+
+# Jupyter checkpoints
+**/.ipynb_checkpoints/
+
+# Data
+lab05/data/
+lab05/lab05.zip
