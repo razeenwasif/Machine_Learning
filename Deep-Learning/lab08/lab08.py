@@ -468,7 +468,7 @@ class BabyGPT(nn.Module):
         loss = None
         if targets is not None:
             B, T, V = logits.shape
-            loss = F.cross_entropy(logits.view(B*T, V), targets.view(B*T))
+            loss = F.cross_entropy(logits.reshape(B*T, V), targets.reshape(B*T))
         
         return logits, loss
 
@@ -701,7 +701,7 @@ def attention_sink():
     
     K = torch.tensor([[0, 0, 0.0],
                       [0, 0, 0.0],
-                      [0, 0, math.log(3)]])
+                      [0, 0, math.log(5.0)]])
     
     att = self_attention(Q, K, V)
     return att
